@@ -1,0 +1,342 @@
+[
+  {
+    "id": "6ad9f6b4-76b3-4c6c-b75e-e856bd0cc2d7",
+    "timestamp": "2026-07-20T14:19:07",
+    "input": {
+      "Monthly_Revenue": 6500000,
+      "Net_Profit_Margin": 12.5,
+      "Burn_Rate_Ratio": 0.82,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 35.0,
+      "Business_Tenure_Months": 24
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 1.0,
+      "prob_tidak_sehat": 0.0,
+      "rekomendasi": "UMKM Anda berada dalam kondisi keuangan yang sangat sehat. Pertahankan strategi saat ini, eksplorasi peluang ekspansi pasar, dan pertimbangkan reinvestasi keuntungan untuk pertumbuhan jangka panjang.",
+      "timestamp": "2026-07-20T14:19:07"
+    }
+  },
+  {
+    "id": "a2453626-7458-4b95-bf3a-06ca61bfc344",
+    "timestamp": "2026-07-20T14:46:28",
+    "input": {
+      "Monthly_Revenue": 6500000,
+      "Net_Profit_Margin": 20.0,
+      "Burn_Rate_Ratio": 0.8,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 35.0,
+      "Business_Tenure_Months": 24
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 1.0,
+      "prob_tidak_sehat": 0.0,
+      "rekomendasi": "UMKM Anda berada dalam kondisi keuangan yang sangat sehat. Pertahankan strategi saat ini, eksplorasi peluang ekspansi pasar, dan pertimbangkan reinvestasi keuntungan untuk pertumbuhan jangka panjang.",
+      "timestamp": "2026-07-20T14:46:28"
+    }
+  },
+  {
+    "id": "96c6a1de-9019-4c48-baac-1aca831a404e",
+    "timestamp": "2026-07-20T14:52:35",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -8.2353,
+      "Burn_Rate_Ratio": 1.0824,
+      "Transaction_Count": 20,
+      "Repeat_Order_Rate": 8,
+      "Business_Tenure_Months": 132
+    },
+    "output": {
+      "label": 0,
+      "label_teks": "Tidak Sehat",
+      "prob_sehat": 0.0116,
+      "prob_tidak_sehat": 0.9884,
+      "rekomendasi": "UMKM Anda menghadapi tekanan keuangan yang serius. Segera lakukan efisiensi biaya operasional, evaluasi burn rate, dan cari sumber pendanaan tambahan. Konsultasikan dengan konsultan keuangan UMKM.",
+      "timestamp": "2026-07-20T14:52:35"
+    }
+  },
+  {
+    "id": "cf033951-3543-4b66-b3ee-08e6c9ccc0fb",
+    "timestamp": "2026-07-20T14:52:56",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -1.1765,
+      "Burn_Rate_Ratio": 1.0118,
+      "Transaction_Count": 20,
+      "Repeat_Order_Rate": 8,
+      "Business_Tenure_Months": 132
+    },
+    "output": {
+      "label": 0,
+      "label_teks": "Tidak Sehat",
+      "prob_sehat": 0.354,
+      "prob_tidak_sehat": 0.646,
+      "rekomendasi": "UMKM Anda berada di zona keuangan yang perlu diperbaiki. Evaluasi struktur biaya, tingkatkan repeat order rate, dan pertimbangkan diversifikasi produk untuk meningkatkan pendapatan.",
+      "timestamp": "2026-07-20T14:52:56"
+    }
+  },
+  {
+    "id": "db4a88b1-111d-41d5-911d-e229f7c9e5a0",
+    "timestamp": "2026-07-20T14:53:08",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": 0,
+      "Burn_Rate_Ratio": 1,
+      "Transaction_Count": 20,
+      "Repeat_Order_Rate": 8,
+      "Business_Tenure_Months": 132
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 0.5165,
+      "prob_tidak_sehat": 0.4835,
+      "rekomendasi": "UMKM Anda terklasifikasi sehat namun dengan probabilitas moderat. Perhatikan efisiensi operasional dan pertahankan margin profit. Lakukan evaluasi bulanan terhadap arus kas.",
+      "timestamp": "2026-07-20T14:53:08"
+    }
+  },
+  {
+    "id": "c1f9df0e-92c9-4c11-ab6b-b6fe355e8515",
+    "timestamp": "2026-07-20T14:53:14",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -5.8824,
+      "Burn_Rate_Ratio": 1.0588,
+      "Transaction_Count": 20,
+      "Repeat_Order_Rate": 8,
+      "Business_Tenure_Months": 132
+    },
+    "output": {
+      "label": 0,
+      "label_teks": "Tidak Sehat",
+      "prob_sehat": 0.0394,
+      "prob_tidak_sehat": 0.9606,
+      "rekomendasi": "UMKM Anda menghadapi tekanan keuangan yang serius. Segera lakukan efisiensi biaya operasional, evaluasi burn rate, dan cari sumber pendanaan tambahan. Konsultasikan dengan konsultan keuangan UMKM.",
+      "timestamp": "2026-07-20T14:53:14"
+    }
+  },
+  {
+    "id": "e7c2c164-c8d5-4827-bc87-aa1cfe1d9116",
+    "timestamp": "2026-07-20T14:53:26",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -9.4118,
+      "Burn_Rate_Ratio": 1.0941,
+      "Transaction_Count": 20,
+      "Repeat_Order_Rate": 8,
+      "Business_Tenure_Months": 132
+    },
+    "output": {
+      "label": 0,
+      "label_teks": "Tidak Sehat",
+      "prob_sehat": 0.0063,
+      "prob_tidak_sehat": 0.9937,
+      "rekomendasi": "UMKM Anda menghadapi tekanan keuangan yang serius. Segera lakukan efisiensi biaya operasional, evaluasi burn rate, dan cari sumber pendanaan tambahan. Konsultasikan dengan konsultan keuangan UMKM.",
+      "timestamp": "2026-07-20T14:53:26"
+    }
+  },
+  {
+    "id": "d552c539-22a3-4462-8225-484cf08fea5d",
+    "timestamp": "2026-07-20T15:02:55",
+    "input": {
+      "Monthly_Revenue": 2500000,
+      "Net_Profit_Margin": 40,
+      "Burn_Rate_Ratio": 0.6,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 10,
+      "Business_Tenure_Months": 144
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 1.0,
+      "prob_tidak_sehat": 0.0,
+      "rekomendasi": "UMKM Anda berada dalam kondisi keuangan yang sangat sehat. Pertahankan strategi saat ini, eksplorasi peluang ekspansi pasar, dan pertimbangkan reinvestasi keuntungan untuk pertumbuhan jangka panjang.",
+      "timestamp": "2026-07-20T15:02:55"
+    }
+  },
+  {
+    "id": "15b76943-a274-4427-8281-794ed54b4c58",
+    "timestamp": "2026-07-20T15:24:48",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": 10,
+      "Burn_Rate_Ratio": 1,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 35,
+      "Business_Tenure_Months": 24
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 0.9949,
+      "prob_tidak_sehat": 0.0051,
+      "rekomendasi": "UMKM Anda berada dalam kondisi keuangan yang sangat sehat. Pertahankan strategi saat ini, eksplorasi peluang ekspansi pasar, dan pertimbangkan reinvestasi keuntungan untuk pertumbuhan jangka panjang.",
+      "timestamp": "2026-07-20T15:24:48"
+    }
+  },
+  {
+    "id": "9f067b65-b03e-4025-a2af-4877b0b4e15f",
+    "timestamp": "2026-07-20T15:24:56",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": 5,
+      "Burn_Rate_Ratio": 1,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 35,
+      "Business_Tenure_Months": 24
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 0.9761,
+      "prob_tidak_sehat": 0.0239,
+      "rekomendasi": "UMKM Anda berada dalam kondisi keuangan yang sangat sehat. Pertahankan strategi saat ini, eksplorasi peluang ekspansi pasar, dan pertimbangkan reinvestasi keuntungan untuk pertumbuhan jangka panjang.",
+      "timestamp": "2026-07-20T15:24:56"
+    }
+  },
+  {
+    "id": "e890050b-3964-422a-acf5-77f8d249215a",
+    "timestamp": "2026-07-20T15:25:02",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": 1,
+      "Burn_Rate_Ratio": 1,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 35,
+      "Business_Tenure_Months": 24
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 0.9252,
+      "prob_tidak_sehat": 0.0748,
+      "rekomendasi": "UMKM Anda berada dalam kondisi keuangan yang sangat sehat. Pertahankan strategi saat ini, eksplorasi peluang ekspansi pasar, dan pertimbangkan reinvestasi keuntungan untuk pertumbuhan jangka panjang.",
+      "timestamp": "2026-07-20T15:25:02"
+    }
+  },
+  {
+    "id": "79873547-3c74-45a5-9a55-cef92f8deb7a",
+    "timestamp": "2026-07-20T15:46:05",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -10,
+      "Burn_Rate_Ratio": 1.012,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 20,
+      "Business_Tenure_Months": 120
+    },
+    "output": {
+      "label": 0,
+      "label_teks": "Tidak Sehat",
+      "prob_sehat": 0.1283,
+      "prob_tidak_sehat": 0.8717,
+      "rekomendasi": "Kondisi keuangan UMKM Anda perlu perhatian. Fokuskan pada peningkatan net profit margin, kurangi pengeluaran tidak produktif, dan tingkatkan jumlah transaksi melalui strategi promosi digital.",
+      "timestamp": "2026-07-20T15:46:05"
+    }
+  },
+  {
+    "id": "32b0a625-5fa7-4b79-8247-a5fe1c2f7c65",
+    "timestamp": "2026-07-20T15:46:14",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -5,
+      "Burn_Rate_Ratio": 1.012,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 20,
+      "Business_Tenure_Months": 120
+    },
+    "output": {
+      "label": 0,
+      "label_teks": "Tidak Sehat",
+      "prob_sehat": 0.357,
+      "prob_tidak_sehat": 0.643,
+      "rekomendasi": "UMKM Anda berada di zona keuangan yang perlu diperbaiki. Evaluasi struktur biaya, tingkatkan repeat order rate, dan pertimbangkan diversifikasi produk untuk meningkatkan pendapatan.",
+      "timestamp": "2026-07-20T15:46:14"
+    }
+  },
+  {
+    "id": "32fb5591-608b-47cc-9987-d90a24005a12",
+    "timestamp": "2026-07-20T15:46:19",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -1,
+      "Burn_Rate_Ratio": 1.012,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 20,
+      "Business_Tenure_Months": 120
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 0.6296,
+      "prob_tidak_sehat": 0.3704,
+      "rekomendasi": "UMKM Anda terklasifikasi sehat namun dengan probabilitas moderat. Perhatikan efisiensi operasional dan pertahankan margin profit. Lakukan evaluasi bulanan terhadap arus kas.",
+      "timestamp": "2026-07-20T15:46:19"
+    }
+  },
+  {
+    "id": "9374b2e2-65a6-43ce-85a7-f736ae04472b",
+    "timestamp": "2026-07-20T15:46:28",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -2,
+      "Burn_Rate_Ratio": 0.941,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 20,
+      "Business_Tenure_Months": 120
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 0.9067,
+      "prob_tidak_sehat": 0.0933,
+      "rekomendasi": "UMKM Anda berada dalam kondisi keuangan yang sangat sehat. Pertahankan strategi saat ini, eksplorasi peluang ekspansi pasar, dan pertimbangkan reinvestasi keuntungan untuk pertumbuhan jangka panjang.",
+      "timestamp": "2026-07-20T15:46:28"
+    }
+  },
+  {
+    "id": "c52d0b20-097b-49f0-81f8-d8c26aa3ad87",
+    "timestamp": "2026-07-20T15:46:31",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -10,
+      "Burn_Rate_Ratio": 0.941,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 20,
+      "Business_Tenure_Months": 120
+    },
+    "output": {
+      "label": 1,
+      "label_teks": "Sehat",
+      "prob_sehat": 0.528,
+      "prob_tidak_sehat": 0.472,
+      "rekomendasi": "UMKM Anda terklasifikasi sehat namun dengan probabilitas moderat. Perhatikan efisiensi operasional dan pertahankan margin profit. Lakukan evaluasi bulanan terhadap arus kas.",
+      "timestamp": "2026-07-20T15:46:31"
+    }
+  },
+  {
+    "id": "239962cb-a4de-4907-b4af-e0338bca0a9b",
+    "timestamp": "2026-07-20T15:46:36",
+    "input": {
+      "Monthly_Revenue": 8500000,
+      "Net_Profit_Margin": -20,
+      "Burn_Rate_Ratio": 0.941,
+      "Transaction_Count": 120,
+      "Repeat_Order_Rate": 20,
+      "Business_Tenure_Months": 120
+    },
+    "output": {
+      "label": 0,
+      "label_teks": "Tidak Sehat",
+      "prob_sehat": 0.0905,
+      "prob_tidak_sehat": 0.9095,
+      "rekomendasi": "UMKM Anda menghadapi tekanan keuangan yang serius. Segera lakukan efisiensi biaya operasional, evaluasi burn rate, dan cari sumber pendanaan tambahan. Konsultasikan dengan konsultan keuangan UMKM.",
+      "timestamp": "2026-07-20T15:46:36"
+    }
+  }
+]

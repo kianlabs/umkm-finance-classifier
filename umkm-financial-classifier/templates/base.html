@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Sistem Klasifikasi Keuangan UMKM{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/dashboard" class="navbar-brand">
+      <span class="brand-logo">📊</span>
+      <div class="brand-names">
+        <span class="brand-main">UMKM<strong>Cek</strong></span>
+        <span class="brand-sub">Cek Kesehatan Keuangan Usaha Anda</span>
+      </div>
+    </a>
+    <ul class="navbar-links">
+      <li>
+        <a href="/dashboard" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
+          <span class="nav-icon">🏠</span><span class="nav-label">Beranda</span>
+        </a>
+      </li>
+      <li>
+        <a href="/klasifikasi" class="nav-link {% if request.path == '/klasifikasi' %}active{% endif %}">
+          <span class="nav-icon">🔍</span><span class="nav-label">Cek Usaha</span>
+        </a>
+      </li>
+      <li>
+        <a href="/visualisasi" class="nav-link {% if request.path == '/visualisasi' %}active{% endif %}">
+          <span class="nav-icon">📈</span><span class="nav-label">Visualisasi</span>
+        </a>
+      </li>
+      <li>
+        <a href="/riwayat" class="nav-link {% if request.path == '/riwayat' %}active{% endif %}">
+          <span class="nav-icon">📋</span><span class="nav-label">Riwayat</span>
+        </a>
+      </li>
+    </ul>
+    <button class="nav-mobile-toggle" onclick="toggleMobileMenu()">☰</button>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu hidden" id="mobile-menu">
+    <a href="/dashboard"   class="mobile-link {% if request.path == '/dashboard' %}active{% endif %}">🏠 Beranda</a>
+    <a href="/klasifikasi" class="mobile-link {% if request.path == '/klasifikasi' %}active{% endif %}">🔍 Cek Usaha</a>
+    <a href="/visualisasi" class="mobile-link {% if request.path == '/visualisasi' %}active{% endif %}">📈 Visualisasi</a>
+    <a href="/riwayat"     class="mobile-link {% if request.path == '/riwayat' %}active{% endif %}">📋 Riwayat</a>
+  </div>
+
+  <!-- Konten Utama -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">📊 UMKMCek</div>
+      <p class="footer-text">Sistem Klasifikasi Kondisi Keuangan UMKM berbasis Gaussian Naïve Bayes</p>
+      <p class="footer-copy">© 2024 · Universitas Duta Bangsa Surakarta · Skripsi Ridzkyan Buti Pratama</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleMobileMenu() {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

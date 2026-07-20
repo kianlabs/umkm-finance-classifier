@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Riwayat Prediksi — UMKMCek{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">📋 Riwayat Analisis</h1>
+  <p class="page-subtitle">Semua hasil analisis kondisi keuangan yang pernah dilakukan tersimpan di sini</p>
+</div>
+
+<!-- Penjelasan -->
+<div class="info-box info-box-green">
+  <div class="info-box-icon">📌</div>
+  <div>
+    <strong>Gunakan riwayat ini untuk memantau perkembangan usaha Anda dari waktu ke waktu.</strong>
+    Anda bisa mengunduh data dalam format CSV untuk disimpan atau dianalisis lebih lanjut.
+    Data hanya tersimpan di perangkat ini (lokal) dan tidak dikirim ke mana pun.
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="riwayat-toolbar">
+  <div class="riwayat-stats">
+    <div class="stat-pill">
+      Total analisis: <strong id="total-predictions">—</strong>
+    </div>
+    <div class="stat-pill sehat-pill">
+      ✅ Sehat: <strong id="total-sehat">—</strong>
+    </div>
+    <div class="stat-pill tidak-pill">
+      ⚠️ Tidak Sehat: <strong id="total-tidak">—</strong>
+    </div>
+  </div>
+  <div class="riwayat-actions">
+    <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇️ Unduh CSV</button>
+    <button class="btn btn-danger btn-sm" onclick="clearHistory()">🗑️ Hapus Semua</button>
+  </div>
+</div>
+
+<!-- Filter -->
+<div class="filter-bar">
+  <div class="filter-item">
+    <label>Tampilkan:</label>
+    <select id="filter-status" onchange="filterHistory()">
+      <option value="all">Semua Status</option>
+      <option value="sehat">✅ Sehat saja</option>
+      <option value="tidak-sehat">⚠️ Tidak Sehat saja</option>
+    </select>
+  </div>
+  <div class="filter-item search-item">
+    <label>Cari:</label>
+    <input type="text" id="search-history" placeholder="Cari berdasarkan tanggal..." oninput="filterHistory()" />
+  </div>
+</div>
+
+<!-- Tabel -->
+<div class="table-container">
+  <div id="history-loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Memuat riwayat...</p>
+  </div>
+
+  <div id="history-empty" class="empty-state hidden">
+    <div class="empty-icon">📭</div>
+    <h3>Belum Ada Riwayat</h3>
+    <p>Anda belum pernah melakukan analisis keuangan.<br />
+       <a href="/klasifikasi" class="btn btn-primary" style="margin-top:.75rem;display:inline-flex">🔍 Mulai Analisis Pertama</a>
+    </p>
+  </div>
+
+  <div class="table-scroll hidden" id="table-scroll">
+    <table class="history-table" id="history-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>📅 Waktu Analisis</th>
+          <th>💰 Pendapatan</th>
+          <th>💸 Pengeluaran</th>
+          <th>📊 Margin</th>
+          <th>🛒 Transaksi</th>
+          <th>🔄 Pelanggan Setia</th>
+          <th>🏷️ Hasil</th>
+          <th>📈 P(Sehat)</th>
+        </tr>
+      </thead>
+      <tbody id="history-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="pagination"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/riwayat.js') }}"></script>
+{% endblock %}

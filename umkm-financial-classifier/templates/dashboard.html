@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Beranda — UMKMCek{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+  <div class="hero-text">
+    <h1 class="hero-title">Cek Kesehatan Keuangan Usaha Anda 🚀</h1>
+    <p class="hero-desc">
+      Masukkan data keuangan usaha Anda dan sistem kami akan menganalisis secara otomatis
+      apakah kondisi keuangan usaha Anda <strong>Sehat</strong> atau perlu <strong>perhatian khusus</strong>.
+      Didukung teknologi <em>Gaussian Naïve Bayes</em> dengan akurasi <strong>94,70%</strong>.
+    </p>
+    <div class="hero-actions">
+      <a href="/klasifikasi" class="btn btn-primary btn-lg">🔍 Cek Usaha Saya Sekarang</a>
+      <a href="/visualisasi" class="btn btn-outline btn-lg">📊 Lihat Analisis Data</a>
+    </div>
+  </div>
+  <div class="hero-illustration">
+    <div class="hero-card-demo">
+      <div class="demo-row">
+        <span class="demo-dot green"></span>
+        <span>Usaha A — <strong style="color:var(--clr-sehat)">✅ Sehat</strong></span>
+        <span class="demo-pct">96%</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-dot red"></span>
+        <span>Usaha B — <strong style="color:var(--clr-tidak)">⚠️ Tidak Sehat</strong></span>
+        <span class="demo-pct">81%</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-dot green"></span>
+        <span>Usaha C — <strong style="color:var(--clr-sehat)">✅ Sehat</strong></span>
+        <span class="demo-pct">88%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cara Kerja -->
+<div class="section-label">Cara Kerja Sistem</div>
+<div class="howto-grid">
+  <div class="howto-card">
+    <div class="howto-num">1</div>
+    <div class="howto-icon">📝</div>
+    <h3>Isi Data Keuangan</h3>
+    <p>Masukkan pendapatan, pengeluaran, jumlah transaksi, dan informasi usaha Anda. Cukup 5 pertanyaan sederhana.</p>
+  </div>
+  <div class="howto-card">
+    <div class="howto-num">2</div>
+    <div class="howto-icon">🤖</div>
+    <h3>Analisis Otomatis</h3>
+    <p>Sistem menganalisis data menggunakan algoritma Gaussian Naïve Bayes yang telah dilatih dengan 150.000 data UMKM.</p>
+  </div>
+  <div class="howto-card">
+    <div class="howto-num">3</div>
+    <div class="howto-icon">💡</div>
+    <h3>Terima Rekomendasi</h3>
+    <p>Dapatkan hasil klasifikasi beserta rekomendasi langkah nyata untuk memperbaiki atau mempertahankan kondisi usaha.</p>
+  </div>
+</div>
+
+<!-- Metrik Model -->
+<div class="section-label">Performa Sistem</div>
+<div id="error-banner" class="error-banner hidden">
+  ⚠️ Model belum siap. Jalankan <code>python train.py</code> terlebih dahulu.
+</div>
+<div class="metrics-grid" id="metrics-grid">
+  <div class="metric-card accent-blue skeleton">
+    <div class="metric-icon">🎯</div>
+    <div class="metric-value" id="val-accuracy">—</div>
+    <div class="metric-label">Akurasi</div>
+    <div class="metric-desc">Dari 100 prediksi, ~94 benar</div>
+  </div>
+  <div class="metric-card accent-green skeleton">
+    <div class="metric-icon">⚖️</div>
+    <div class="metric-value" id="val-f1">—</div>
+    <div class="metric-label">F1-Score</div>
+    <div class="metric-desc">Keseimbangan presisi & recall</div>
+  </div>
+  <div class="metric-card accent-purple skeleton">
+    <div class="metric-icon">📈</div>
+    <div class="metric-value" id="val-auc">—</div>
+    <div class="metric-label">ROC-AUC</div>
+    <div class="metric-desc">Kemampuan membedakan kelas</div>
+  </div>
+  <div class="metric-card accent-orange skeleton">
+    <div class="metric-icon">🔁</div>
+    <div class="metric-value" id="val-cv">—</div>
+    <div class="metric-label">CV 10-Fold</div>
+    <div class="metric-desc">Konsistensi lintas pengujian</div>
+  </div>
+  <div class="metric-card accent-teal skeleton">
+    <div class="metric-icon">🔍</div>
+    <div class="metric-value" id="val-precision">—</div>
+    <div class="metric-label">Precision</div>
+    <div class="metric-desc">Ketepatan prediksi positif</div>
+  </div>
+  <div class="metric-card accent-pink skeleton">
+    <div class="metric-icon">📡</div>
+    <div class="metric-value" id="val-recall">—</div>
+    <div class="metric-label">Recall</div>
+    <div class="metric-desc">Kelengkapan deteksi</div>
+  </div>
+</div>
+
+<!-- Info Dataset & Model -->
+<div class="section-label">Tentang Sistem & Dataset</div>
+<div class="info-row">
+  <div class="info-card">
+    <div class="info-card-icon">📂</div>
+    <h3>Dataset Pelatihan</h3>
+    <table class="info-table">
+      <tr><td>Total data</td><td><strong>150.000 baris</strong></td></tr>
+      <tr><td>Data latih</td><td id="total-train">—</td></tr>
+      <tr><td>Data uji</td><td id="total-test">—</td></tr>
+      <tr><td>Rasio split</td><td>80% : 20%</td></tr>
+      <tr><td>Sumber</td><td>Kaggle (Sintetis)</td></tr>
+      <tr><td>Waktu training</td><td id="training-time">—</td></tr>
+    </table>
+  </div>
+  <div class="info-card">
+    <div class="info-card-icon">🤖</div>
+    <h3>Tentang Model</h3>
+    <table class="info-table">
+      <tr><td>Algoritma</td><td><strong>Gaussian Naïve Bayes</strong></td></tr>
+      <tr><td>Normalisasi</td><td>Min-Max Scaler [0–1]</td></tr>
+      <tr><td>Validasi</td><td>10-Fold Stratified CV</td></tr>
+      <tr><td>Label kelas</td><td>Sehat / Tidak Sehat</td></tr>
+      <tr><td>Framework</td><td>scikit-learn 1.4</td></tr>
+    </table>
+  </div>
+  <div class="info-card">
+    <div class="info-card-icon">📊</div>
+    <h3>Indikator yang Dianalisis</h3>
+    <ul class="feature-list">
+      <li><span class="feat-icon">💰</span><div><strong>Pendapatan Bulanan</strong><small>Total omzet per bulan</small></div></li>
+      <li><span class="feat-icon">📉</span><div><strong>Margin Keuntungan</strong><small>Persentase laba bersih</small></div></li>
+      <li><span class="feat-icon">🔥</span><div><strong>Rasio Pengeluaran</strong><small>Pengeluaran vs pendapatan</small></div></li>
+      <li><span class="feat-icon">🛒</span><div><strong>Jumlah Transaksi</strong><small>Aktivitas penjualan per bulan</small></div></li>
+      <li><span class="feat-icon">🔄</span><div><strong>Pelanggan Setia</strong><small>Persentase repeat order</small></div></li>
+      <li><span class="feat-icon">📅</span><div><strong>Lama Usaha</strong><small>Pengalaman & kestabilan usaha</small></div></li>
+    </ul>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

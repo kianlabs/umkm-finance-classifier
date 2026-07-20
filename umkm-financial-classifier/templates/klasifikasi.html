@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Cek Usaha Saya — UMKMCek{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">🔍 Cek Kondisi Keuangan Usaha</h1>
+  <p class="page-subtitle">Isi data keuangan usaha Anda — sistem akan menganalisis kondisi keuangan secara otomatis</p>
+</div>
+
+<div class="info-box info-box-blue">
+  <div class="info-box-icon">💡</div>
+  <div>
+    <strong>Tips Pengisian:</strong> Isi <em>Pendapatan</em> dan <em>Pengeluaran</em> terlebih dahulu —
+    Margin Keuntungan dan Rasio Pengeluaran akan <strong>dihitung otomatis</strong>.
+    Anda tetap bisa mengubah nilainya secara manual jika perlu.
+  </div>
+</div>
+
+<div class="klasifikasi-layout">
+
+  <!-- ── FORM INPUT ── -->
+  <div class="form-card">
+    <div class="form-card-header">
+      <h2 class="form-title">📝 Indikator Keuangan Usaha</h2>
+      <span class="form-step-badge">6 indikator</span>
+    </div>
+
+    <form id="klasifikasi-form" novalidate>
+
+      <!-- Bagian: Keuangan Dasar -->
+      <div class="form-section-title">💵 Keuangan Bulanan</div>
+
+      <!-- Pendapatan -->
+      <div class="form-group">
+        <label for="Monthly_Revenue">
+          <span class="q-num">1</span>
+          Pendapatan Bulanan
+        </label>
+        <div class="input-prefix-wrap" id="wrap-Monthly_Revenue">
+          <span class="input-prefix">Rp</span>
+          <input type="number" id="Monthly_Revenue" name="Monthly_Revenue"
+                 placeholder="cth: 6.500.000" min="1" step="1000" required />
+        </div>
+        <span class="field-hint">Total uang masuk dari semua penjualan bulan ini</span>
+        <span class="field-error" id="err-Monthly_Revenue"></span>
+      </div>
+
+      <!-- Pengeluaran (helper — tidak dikirim ke model) -->
+      <div class="form-group">
+        <label for="pengeluaran">
+          <span class="q-num">✱</span>
+          Total Pengeluaran Bulanan
+          <span class="label-badge-helper">Bantu Hitung Otomatis</span>
+        </label>
+        <div class="input-prefix-wrap">
+          <span class="input-prefix">Rp</span>
+          <input type="number" id="pengeluaran" name="pengeluaran"
+                 placeholder="cth: 5.200.000" min="0" step="1000" />
+        </div>
+        <span class="field-hint">Isi ini agar Margin &amp; Rasio Pengeluaran dihitung otomatis. Termasuk bahan baku, gaji, sewa, listrik, dll.</span>
+        <span class="field-error" id="err-pengeluaran"></span>
+      </div>
+
+      <!-- Divider dengan preview -->
+      <div class="calc-preview hidden" id="calc-preview">
+        <div class="calc-item">
+          <span class="ci-label">💰 Laba bersih</span>
+          <strong id="calc-laba" class="ci-value">—</strong>
+        </div>
+        <div class="calc-item ci-arrow">→</div>
+        <div class="calc-item">
+          <span class="ci-label">📊 Margin (otomatis)</span>
+          <strong id="calc-npm" class="ci-value">—</strong>
+        </div>
+        <div class="calc-item">
+          <span class="ci-label">🔥 Rasio (otomatis)</span>
+          <strong id="calc-burn" class="ci-value">—</strong>
+        </div>
+      </div>
+
+      <!-- Net Profit Margin -->
+      <div class="form-group">
+        <label for="Net_Profit_Margin">
+          <span class="q-num">2</span>
+          Margin Keuntungan Bersih <em>(Net Profit Margin)</em>
+        </label>
+        <div class="input-suffix-wrap" id="wrap-Net_Profit_Margin">
+          <input type="number" id="Net_Profit_Margin" name="Net_Profit_Margin"
+                 placeholder="dihitung otomatis / isi manual" min="-35" max="45" step="0.01" required />
+          <span class="input-suffix">%</span>
+        </div>
+        <span class="field-hint">
+          <strong>Rumus:</strong> (Pendapatan − Pengeluaran) ÷ Pendapatan × 100 &nbsp;|&nbsp; Rentang: −35% s.d. 45%
+        </span>
+        <span class="field-error" id="err-Net_Profit_Margin"></span>
+      </div>
+
+      <!-- Burn Rate Ratio -->
+      <div class="form-group">
+        <label for="Burn_Rate_Ratio">
+          <span class="q-num">3</span>
+          Rasio Pengeluaran <em>(Burn Rate Ratio)</em>
+        </label>
+        <input type="number" id="Burn_Rate_Ratio" name="Burn_Rate_Ratio"
+               placeholder="dihitung otomatis / isi manual" min="0.44" max="1.55" step="0.001" required />
+        <span class="field-hint">
+          <strong>Rumus:</strong> Pengeluaran ÷ Pendapatan &nbsp;|&nbsp;
+          &lt; 1 = untung &nbsp;·&nbsp; &gt; 1 = merugi &nbsp;|&nbsp; Rentang: 0.44 s.d. 1.55
+        </span>
+        <span class="field-error" id="err-Burn_Rate_Ratio"></span>
+      </div>
+
+      <!-- Divider -->
+      <div class="form-section-title" style="margin-top:1.25rem">📦 Aktivitas Usaha</div>
+
+      <!-- Transaksi -->
+      <div class="form-group">
+        <label for="Transaction_Count">
+          <span class="q-num">4</span>
+          Jumlah Transaksi per Bulan
+        </label>
+        <input type="number" id="Transaction_Count" name="Transaction_Count"
+               placeholder="cth: 120" min="9" max="285" step="1" required />
+        <span class="field-hint">Total pesanan atau struk penjualan bulan ini. Rentang: 9–285</span>
+        <span class="field-error" id="err-Transaction_Count"></span>
+      </div>
+
+      <!-- Repeat Order -->
+      <div class="form-group">
+        <label for="Repeat_Order_Rate">
+          <span class="q-num">5</span>
+          Tingkat Pelanggan Kembali <em>(Repeat Order Rate)</em>
+        </label>
+        <div class="input-suffix-wrap" id="wrap-Repeat_Order_Rate">
+          <input type="number" id="Repeat_Order_Rate" name="Repeat_Order_Rate"
+                 placeholder="cth: 35" min="2" max="54" step="0.1" required />
+          <span class="input-suffix">%</span>
+        </div>
+        <span class="field-hint">Persentase pelanggan yang memesan ulang. Rentang: 2% s.d. 54%</span>
+        <span class="field-error" id="err-Repeat_Order_Rate"></span>
+      </div>
+
+      <!-- Lama Usaha -->
+      <div class="form-group">
+        <label for="Business_Tenure_Months">
+          <span class="q-num">6</span>
+          Lama Usaha Berjalan
+        </label>
+        <div class="input-suffix-wrap" id="wrap-Business_Tenure_Months">
+          <input type="number" id="Business_Tenure_Months" name="Business_Tenure_Months"
+                 placeholder="cth: 24" min="3" max="179" step="1" required />
+          <span class="input-suffix">bulan</span>
+        </div>
+        <span class="field-hint">Sudah berapa bulan usaha berjalan? Rentang: 3–179 bulan (maks ~15 tahun)</span>
+        <span class="field-error" id="err-Business_Tenure_Months"></span>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg" id="btn-predict">
+          <span id="btn-text">🔍 Analisis Kondisi Usaha Saya</span>
+          <span id="btn-spinner" class="spinner hidden"></span>
+        </button>
+        <button type="button" class="btn btn-outline" onclick="resetForm()">↺ Isi Ulang</button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ── HASIL PREDIKSI ── -->
+  <div class="result-card" id="result-card">
+
+    <div id="result-placeholder" class="result-placeholder">
+      <div class="placeholder-illustration">
+        <div class="ph-circle">🏪</div>
+      </div>
+      <h3>Siap Menganalisis Usaha Anda</h3>
+      <p>Isi form di sebelah kiri lalu klik <strong>"Analisis Kondisi Usaha Saya"</strong>.</p>
+      <div class="ph-features">
+        <div class="ph-feat"><span>✅</span> Hasil instan</div>
+        <div class="ph-feat"><span>💡</span> Rekomendasi nyata</div>
+        <div class="ph-feat"><span>📊</span> Berbasis 150.000 data</div>
+      </div>
+    </div>
+
+    <div id="result-content" class="hidden">
+      <div class="result-header">
+        <div class="result-badge-wrap">
+          <div class="result-badge" id="result-badge">—</div>
+        </div>
+        <p class="result-tagline" id="result-tagline">—</p>
+      </div>
+
+      <div class="gauge-section">
+        <h3 class="section-sub-title">📊 Tingkat Keyakinan Prediksi</h3>
+        <div class="gauge-container">
+          <canvas id="gauge-chart" width="300" height="175"></canvas>
+        </div>
+        <div class="gauge-legend">
+          <div class="gl-item">
+            <span class="gl-dot" style="background:var(--clr-sehat)"></span>
+            <span>Sehat:</span><strong id="gauge-sehat">—</strong>
+          </div>
+          <div class="gl-item">
+            <span class="gl-dot" style="background:var(--clr-tidak)"></span>
+            <span>Tidak Sehat:</span><strong id="gauge-tidak">—</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-summary">
+        <h3 class="section-sub-title">📋 Ringkasan Data yang Dianalisis</h3>
+        <div class="summary-grid" id="summary-grid"></div>
+      </div>
+
+      <div class="rekomendasi-section">
+        <h3 class="section-sub-title">💡 Rekomendasi untuk Usaha Anda</h3>
+        <p id="rekomendasi-text" class="rekomendasi-text">—</p>
+      </div>
+
+      <div class="result-footer">
+        <small id="result-timestamp" class="text-muted">—</small>
+        <button class="btn btn-outline btn-sm" onclick="resetForm()">🔄 Cek Ulang</button>
+      </div>
+    </div>
+
+    <div id="result-error" class="result-error hidden">
+      <div class="error-icon">❌</div>
+      <p id="result-error-text">Terjadi kesalahan.</p>
+      <button class="btn btn-outline btn-sm" onclick="resetForm()">Coba Lagi</button>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/klasifikasi.js') }}"></script>
+{% endblock %}

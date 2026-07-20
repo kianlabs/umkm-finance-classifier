@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Visualisasi Data — UMKMCek{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">📈 Visualisasi & Analisis Data</h1>
+  <p class="page-subtitle">Grafik dan chart berikut menggambarkan bagaimana sistem mempelajari pola keuangan UMKM dari 150.000 data</p>
+</div>
+
+<!-- Penjelasan Halaman -->
+<div class="info-box info-box-purple">
+  <div class="info-box-icon">🎓</div>
+  <div>
+    <strong>Apa yang ada di halaman ini?</strong>
+    Halaman ini menampilkan visualisasi ilmiah dari proses pelatihan model. Berguna untuk memahami
+    bagaimana sistem bekerja dan seberapa akurat hasilnya.
+    Terdapat tiga bagian: <strong>Eksplorasi Data</strong>, <strong>Performa Model</strong>, dan <strong>Kepentingan Fitur</strong>.
+  </div>
+</div>
+
+<div id="viz-loading" class="loading-container">
+  <div class="loading-spinner"></div>
+  <p>Memuat visualisasi, mohon tunggu sebentar...</p>
+</div>
+
+<div id="viz-error" class="error-banner hidden">
+  ⚠️ <span id="viz-error-text">Gagal memuat visualisasi.</span>
+  Pastikan model sudah dilatih: <code>python train.py</code>
+</div>
+
+<div id="viz-content" class="hidden">
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="eda">
+      <span>📊</span> Eksplorasi Data
+    </button>
+    <button class="tab-btn" data-tab="model">
+      <span>🎯</span> Performa Model
+    </button>
+    <button class="tab-btn" data-tab="importance">
+      <span>🏆</span> Kepentingan Fitur
+    </button>
+  </div>
+
+  <!-- ── Tab: EDA ── -->
+  <div class="tab-panel active" id="tab-eda">
+
+    <div class="viz-section-intro">
+      <h2>Eksplorasi Data (EDA)</h2>
+      <p>Sebelum melatih model, kami menganalisis karakteristik dataset untuk memahami pola yang tersembunyi.</p>
+    </div>
+
+    <div class="viz-grid">
+      <div class="viz-card">
+        <div class="viz-card-header">
+          <h3>🥧 Distribusi Kelas</h3>
+          <span class="viz-badge">Dataset</span>
+        </div>
+        <p class="viz-desc">Proporsi UMKM yang tergolong <strong>Sehat</strong> (Elite + Growth) dan <strong>Tidak Sehat</strong> (Struggling + Critical) dari 150.000 data.</p>
+        <img id="img-class-dist" src="" alt="Distribusi Kelas" class="viz-img" />
+      </div>
+      <div class="viz-card">
+        <div class="viz-card-header">
+          <h3>🌡️ Korelasi Antar Indikator</h3>
+          <span class="viz-badge">Korelasi</span>
+        </div>
+        <p class="viz-desc">Seberapa kuat hubungan antar indikator keuangan. Nilai mendekati 1 (hijau) = sangat berkaitan, mendekati -1 (merah) = berlawanan arah.</p>
+        <img id="img-correlation" src="" alt="Korelasi Fitur" class="viz-img" />
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-card-header">
+        <h3>📉 Pola Distribusi Tiap Indikator</h3>
+        <span class="viz-badge">KDE</span>
+      </div>
+      <p class="viz-desc">Grafik ini menunjukkan perbedaan pola distribusi data antara UMKM Sehat (hijau) dan Tidak Sehat (merah) untuk setiap indikator keuangan. Semakin jelas pemisahannya, semakin mudah model membedakan keduanya.</p>
+      <img id="img-kde" src="" alt="KDE per Fitur" class="viz-img" />
+    </div>
+
+  </div>
+
+  <!-- ── Tab: Performa Model ── -->
+  <div class="tab-panel hidden" id="tab-model">
+
+    <div class="viz-section-intro">
+      <h2>Performa Model Klasifikasi</h2>
+      <p>Hasil pengujian model pada 30.000 data uji yang <em>tidak pernah dilihat</em> model saat pelatihan.</p>
+    </div>
+
+    <div class="viz-grid">
+      <div class="viz-card">
+        <div class="viz-card-header">
+          <h3>🧮 Confusion Matrix</h3>
+          <span class="viz-badge">Akurasi Detail</span>
+        </div>
+        <p class="viz-desc">
+          Tabel perbandingan antara prediksi model dengan kondisi sebenarnya.
+          <strong>TP (True Positive)</strong> = UMKM Sehat yang diprediksi Sehat ✅ |
+          <strong>TN (True Negative)</strong> = UMKM Tidak Sehat yang diprediksi Tidak Sehat ✅ |
+          <strong>FP/FN</strong> = kesalahan prediksi.
+        </p>
+        <img id="img-confusion" src="" alt="Confusion Matrix" class="viz-img" />
+      </div>
+      <div class="viz-card">
+        <div class="viz-card-header">
+          <h3>📐 Kurva ROC</h3>
+          <span class="viz-badge">AUC</span>
+        </div>
+        <p class="viz-desc">Kurva ROC menunjukkan kemampuan model membedakan kelas Sehat dan Tidak Sehat. Semakin mendekati pojok kiri atas, semakin baik. <strong>AUC = 0.9859</strong> artinya model sangat handal.</p>
+        <img id="img-roc" src="" alt="ROC Curve" class="viz-img" />
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-card-header">
+        <h3>🔁 Konsistensi Model — 10-Fold Cross Validation</h3>
+        <span class="viz-badge">Validasi Silang</span>
+      </div>
+      <p class="viz-desc">Dataset latih dibagi 10 bagian. Setiap bagian dipakai bergantian sebagai data uji sebanyak 10 kali. Grafik ini menunjukkan akurasi tiap pengujian — semakin konsisten, semakin dapat diandalkan.</p>
+      <img id="img-cv" src="" alt="CV Scores" class="viz-img" />
+    </div>
+
+  </div>
+
+  <!-- ── Tab: Feature Importance ── -->
+  <div class="tab-panel hidden" id="tab-importance">
+
+    <div class="viz-section-intro">
+      <h2>Kepentingan Indikator Keuangan</h2>
+      <p>Indikator mana yang paling berpengaruh dalam menentukan kondisi keuangan UMKM?</p>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-card-header">
+        <h3>🏆 Peringkat Kepentingan Indikator</h3>
+        <span class="viz-badge">Fisher Score</span>
+      </div>
+      <p class="viz-desc">
+        Skor kepentingan dihitung berdasarkan seberapa jauh nilai rata-rata tiap indikator berbeda antara UMKM Sehat dan Tidak Sehat, relatif terhadap variasi datanya.
+        Semakin tinggi skornya, semakin besar pengaruh indikator tersebut terhadap kondisi keuangan.
+      </p>
+      <img id="img-importance" src="" alt="Feature Importance" class="viz-img" />
+    </div>
+
+    <!-- Penjelasan fitur -->
+    <div class="feature-explain-grid">
+      <div class="fe-card">
+        <span class="fe-rank">#1</span>
+        <span class="fe-icon">📉</span>
+        <h4>Margin Keuntungan</h4>
+        <p>Indikator paling kuat. UMKM Sehat memiliki margin positif, sementara yang tidak sehat cenderung merugi.</p>
+      </div>
+      <div class="fe-card">
+        <span class="fe-rank">#2</span>
+        <span class="fe-icon">🔥</span>
+        <h4>Rasio Pengeluaran</h4>
+        <p>Indikator kedua terkuat. Pengeluaran yang melebihi pendapatan adalah sinyal bahaya utama.</p>
+      </div>
+      <div class="fe-card">
+        <span class="fe-rank">#3–5</span>
+        <span class="fe-icon">📊</span>
+        <h4>Transaksi, Pelanggan, Tenure</h4>
+        <p>Memberikan kontribusi tambahan — aktivitas dan pengalaman usaha membantu memperkuat prediksi.</p>
+      </div>
+      <div class="fe-card">
+        <span class="fe-rank">#6</span>
+        <span class="fe-icon">💰</span>
+        <h4>Pendapatan Bulanan</h4>
+        <p>Kontribusi terkecil. Besarnya omzet saja tidak menentukan sehat/tidaknya usaha — yang penting efisiensi.</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/visualisasi.js') }}"></script>
+{% endblock %}
