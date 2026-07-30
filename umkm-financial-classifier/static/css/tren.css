@@ -1,0 +1,164 @@
+/* tren.css — styling khusus Analisis Tren Tahunan (independen) */
+
+.tren-container {
+  margin-top: 2.5rem;
+  padding: 0 0.5rem;
+}
+
+.tren-header h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--clr-primary, #1e2761);
+  margin-bottom: 0.25rem;
+}
+
+.tren-subtitle {
+  color: var(--clr-muted, #64748b);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.tren-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tren-stat {
+  background: linear-gradient(135deg, var(--clr-card, #fff) 0%, var(--clr-bg, #f8fafc) 100%);
+  border: 1px solid var(--clr-border, #e2e8f0);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.tren-stat .label {
+  font-size: 0.8rem;
+  color: var(--clr-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.tren-stat .value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--clr-primary, #1e2761);
+}
+
+.tren-stat .value.sehat { color: #10b981; }
+.tren-stat .value.tidak { color: #ef4444; }
+.tren-stat .value.fluk  { color: #f59e0b; }
+
+.tren-stat .desc {
+  font-size: 0.8rem;
+  color: var(--clr-muted, #64748b);
+  margin-top: 0.25rem;
+}
+
+.tren-card {
+  background: var(--clr-card, #fff);
+  border: 1px solid var(--clr-border, #e2e8f0);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.tren-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--clr-primary, #1e2761);
+  margin-bottom: 1rem;
+}
+
+.tren-chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 320px;
+}
+
+.tren-table-wrapper {
+  overflow-x: auto;
+}
+
+table.tren-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+table.tren-table th {
+  background: var(--clr-bg, #f8fafc);
+  padding: 0.7rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--clr-primary, #1e2761);
+  border-bottom: 2px solid var(--clr-border, #e2e8f0);
+  white-space: nowrap;
+}
+
+table.tren-table td {
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid var(--clr-border, #f1f5f9);
+}
+
+table.tren-table tr:hover {
+  background: var(--clr-bg, #f8fafc);
+}
+
+.tren-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tren-badge-sehat { background: #d1fae5; color: #065f46; }
+.tren-badge-tidak { background: #fee2e2; color: #991b1b; }
+.tren-badge-campur { background: #fef3c7; color: #92400e; }
+
+.tren-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--clr-muted, #64748b);
+  background: var(--clr-card, #fff);
+  border: 1px dashed var(--clr-border, #cbd5e1);
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tren-verdict-card {
+  background: linear-gradient(135deg, #1e2761 0%, #152044 100%);
+  border-radius: 1rem;
+  padding: 1.5rem 2rem;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(30, 39, 97, 0.15);
+}
+
+.tren-verdict-card .verdict-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+
+.tren-verdict-card .verdict-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.tren-verdict-card .verdict-desc {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+.tren-verdict-card.sehat { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+.tren-verdict-card.tidak { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+.tren-verdict-card.fluk  { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prediksi Massal — UMKMCek</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    .batch-container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .batch-header { text-align: center; margin-bottom: 2.5rem; }
+    .batch-header h1 { font-size: 2rem; font-weight: 800; color: var(--text, #1e293b); }
+    .batch-header p { color: var(--text-muted, #64748b); margin-top: 0.5rem; }
+    .upload-card {
+      background: var(--card-bg, #fff);
+      border: 2px dashed var(--border, #cbd5e1);
+      border-radius: 1rem;
+      padding: 3rem 2rem;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .upload-card.dragover { border-color: var(--primary, #2563eb); background: var(--primary-light, #eff6ff); }
+    .upload-card .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .upload-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .upload-card p { font-size: 0.875rem; color: var(--text-muted, #64748b); margin-bottom: 1.5rem; }
+    .upload-card input[type="file"] { display: none; }
+    .upload-card .btn-upload {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 2rem; border-radius: 0.75rem;
+      background: var(--primary, #2563eb); color: #fff;
+      font-weight: 600; cursor: pointer; border: none;
+      transition: background 0.2s;
+    }
+    .upload-card .btn-upload:hover { background: var(--primary-dark, #1d4ed8); }
+    .file-info { margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted, #64748b); }
+    .btn-submit {
+      display: none; margin: 1.5rem auto 0;
+      padding: 0.875rem 3rem; border-radius: 0.75rem;
+      background: var(--success, #10b981); color: #fff;
+      font-weight: 700; font-size: 1.1rem; cursor: pointer; border: none;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #059669; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-submit.show { display: inline-flex; align-items: center; gap: 0.5rem; }
+
+    /* Spinner */
+    .spinner { display: inline-block; width: 1.25rem; height: 1.25rem; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.7s ease infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Hasil */
+    .result-section { display: none; margin-top: 2rem; }
+    .result-section.show { display: block; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card {
+      background: var(--card-bg, #fff);
+      border: 1px solid var(--border, #e2e8f0);
+      border-radius: 0.75rem; padding: 1.25rem; text-align: center;
+    }
+    .stat-card .stat-value { font-size: 2rem; font-weight: 800; }
+    .stat-card .stat-label { font-size: 0.8rem; color: var(--text-muted, #64748b); }
+    .stat-card.sehat .stat-value { color: var(--success, #10b981); }
+    .stat-card.tidak .stat-value { color: var(--danger, #ef4444); }
+    .stat-card.invalid .stat-value { color: var(--warning, #f59e0b); }
+    .stat-card.total .stat-value { color: var(--primary, #2563eb); }
+
+    .table-wrapper {
+      overflow-x: auto; border-radius: 0.75rem;
+      border: 1px solid var(--border, #e2e8f0);
+      background: var(--card-bg, #fff);
+    }
+    table.batch-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    table.batch-table th {
+      background: var(--bg-muted, #f8fafc); padding: 0.75rem 0.75rem;
+      text-align: left; font-weight: 600; white-space: nowrap;
+      border-bottom: 2px solid var(--border, #e2e8f0);
+    }
+    table.batch-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border, #f1f5f9); }
+    table.batch-table tr:hover { background: var(--bg-muted, #f8fafc); }
+    .badge {
+      display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 700;
+    }
+    .badge-sehat { background: #d1fae5; color: #065f46; }
+    .badge-tidak { background: #fee2e2; color: #991b1b; }
+
+    .error-rows { margin-top: 1rem; }
+    .error-rows summary { cursor: pointer; font-weight: 600; color: var(--warning, #f59e0b); }
+    .error-rows ul { margin-top: 0.5rem; padding-left: 1.5rem; font-size: 0.85rem; }
+    .error-rows li { margin-bottom: 0.25rem; }
+
+    .btn-download {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 1.25rem; border-radius: 0.5rem;
+      background: var(--primary, #2563eb); color: #fff;
+      font-weight: 600; cursor: pointer; border: none; font-size: 0.875rem;
+      transition: background 0.2s; margin-bottom: 1rem;
+    }
+    .btn-download:hover { background: var(--primary-dark, #1d4ed8); }
+
+    .sample-link { margin-top: 0.75rem; font-size: 0.8rem; }
+    .sample-link a { color: var(--primary, #2563eb); cursor: pointer; text-decoration: underline; }
+
+    /* Chart Distribusi */
+    .chart-card {
+      background: var(--card-bg, #fff);
+      border: 1px solid var(--border, #e2e8f0);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/dashboard" class="navbar-brand">
+      <span class="brand-logo">📊</span>
+      <div class="brand-names">
+        <span class="brand-main">UMKM<strong>Cek</strong></span>
+        <span class="brand-sub">Cek Kesehatan Keuangan Usaha Anda</span>
+      </div>
+    </a>
+    <ul class="navbar-links">
+      <li><a href="/dashboard" class="nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></a></li>
+      <li><a href="/klasifikasi" class="nav-link"><span class="nav-icon">🔍</span><span class="nav-label">Cek Usaha</span></a></li>
+      <li><a href="/batch" class="nav-link active"><span class="nav-icon">📦</span><span class="nav-label">Prediksi Massal</span></a></li>
+      <li><a href="/visualisasi" class="nav-link"><span class="nav-icon">📈</span><span class="nav-label">Visualisasi</span></a></li>
+      <li><a href="/riwayat" class="nav-link"><span class="nav-icon">📋</span><span class="nav-label">Riwayat</span></a></li>
+    </ul>
+    <button class="nav-mobile-toggle" onclick="toggleMobileMenu()">☰</button>
+  </nav>
+
+  <div class="mobile-menu hidden" id="mobile-menu">
+    <a href="/dashboard"   class="mobile-link">🏠 Beranda</a>
+    <a href="/klasifikasi" class="mobile-link">🔍 Cek Usaha</a>
+    <a href="/batch"       class="mobile-link active">📦 Prediksi Massal</a>
+    <a href="/visualisasi" class="mobile-link">📈 Visualisasi</a>
+    <a href="/riwayat"     class="mobile-link">📋 Riwayat</a>
+  </div>
+
+  <main class="main-content">
+    <div class="batch-container">
+      <div class="batch-header">
+        <h1>📦 Prediksi Massal</h1>
+        <p>Upload file CSV dengan data UMKM untuk prediksi sekaligus dalam satu proses</p>
+      </div>
+
+      <!-- Upload Card -->
+      <div class="upload-card" id="uploadCard">
+        <div class="upload-icon">📂</div>
+        <h3>Upload File CSV</h3>
+        <p>Drag & drop file CSV atau klik untuk memilih file</p>
+        <label for="fileInput" class="btn-upload">
+          <span>📄</span> Pilih File
+        </label>
+        <input type="file" id="fileInput" accept=".csv" />
+        <div class="file-info" id="fileInfo"></div>
+        <div class="sample-link">
+          💡 Belum punya file? 
+          <a onclick="downloadSample()">Download template CSV contoh</a>
+        </div>
+        <button class="btn-submit" id="btnSubmit" onclick="submitBatch()">
+          🚀 Proses Prediksi
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="result-section" id="loadingSection">
+        <div class="upload-card" style="border-style:solid; padding:2rem;">
+          <div class="spinner" style="border-top-color:var(--primary); width:2.5rem; height:2.5rem; border-width:4px; margin:0 auto 1rem;"></div>
+          <h3>Memproses Data...</h3>
+          <p id="loadingText">Sedang memvalidasi dan memprediksi data UMKM Anda</p>
+        </div>
+      </div>
+
+      <!-- Hasil -->
+      <div class="result-section" id="resultSection">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+          <h2 style="font-weight:800;">📋 Hasil Prediksi</h2>
+          <button class="btn-download" onclick="downloadCSV()">⬇ Download CSV</button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <!-- Chart Distribusi -->
+        <div class="chart-section" id="chartSection" style="display:none; margin-bottom: 1.5rem;">
+          <div class="chart-card">
+            <h3 style="font-weight:700; margin-bottom:0.75rem; text-align:center;">📊 Distribusi Hasil Prediksi</h3>
+            <div class="chart-wrapper" style="max-width:400px; margin:0 auto;">
+              <canvas id="distChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrapper" id="tableWrapper">
+          <table class="batch-table" id="resultTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Pendapatan</th>
+                <th>Margin</th>
+                <th>Burn Rate</th>
+                <th>Transaksi</th>
+                <th>Repeat Order</th>
+                <th>Tenur (bln)</th>
+                <th>Hasil</th>
+                <th>Prob Sehat</th>
+              </tr>
+            </thead>
+            <tbody id="resultBody"></tbody>
+          </table>
+        </div>
+
+        <div class="error-rows" id="errorContainer" style="display:none;">
+          <details>
+            <summary id="errorSummary">Baris tidak valid</summary>
+            <ul id="errorList"></ul>
+          </details>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">📊 UMKMCek</div>
+      <p class="footer-text">Sistem Klasifikasi Kondisi Keuangan UMKM berbasis Gaussian Naïve Bayes</p>
+      <p class="footer-copy">© 2024 · Universitas Duta Bangsa Surakarta · Skripsi Ridzkyan Buti Pratama</p>
+    </div>
+  </footer>
+
+  <script>
+    // ── Drag & Drop ──────────────────────────────────────────────────────────
+    const uploadCard = document.getElementById('uploadCard');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    uploadCard.addEventListener('dragover', e => { e.preventDefault(); uploadCard.classList.add('dragover'); });
+    uploadCard.addEventListener('dragleave', () => uploadCard.classList.remove('dragover'));
+    uploadCard.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadCard.classList.remove('dragover');
+      if (e.dataTransfer.files.length) fileInput.files = e.dataTransfer.files;
+      onFileSelect();
+    });
+    fileInput.addEventListener('change', onFileSelect);
+
+    function onFileSelect() {
+      const file = fileInput.files[0];
+      if (!file) { fileInfo.textContent = ''; btnSubmit.classList.remove('show'); return; }
+      fileInfo.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      if (!file.name.endsWith('.csv')) {
+        fileInfo.textContent += ' — ❌ Harus .csv';
+        btnSubmit.classList.remove('show');
+        return;
+      }
+      btnSubmit.classList.add('show');
+    }
+
+    function toggleMobileMenu() {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    }
+
+    // ── Download Template Contoh ────────────────────────────────────────────
+    let distChartInstance = null;
+
+    function renderDistChart(sehat, tidak) {
+      if (distChartInstance) distChartInstance.destroy();
+      const total = sehat + tidak;
+      if (total === 0) return;
+      const ctx = document.getElementById('distChart').getContext('2d');
+      distChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sehat', 'Tidak Sehat'],
+          datasets: [{
+            data: [sehat, tidak],
+            backgroundColor: ['#10b981', '#ef4444'],
+            borderColor: ['#fff', '#fff'],
+            borderWidth: 3,
+            hoverOffset: 8,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { padding: 20, usePointStyle: true, font: { size: 14, weight: 'bold' } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  const val = ctx.raw;
+                  const pct = ((val / total) * 100).toFixed(1);
+                  return ` ${ctx.label}: ${val} UMKM (${pct}%)`;
+                }
+              }
+            }
+          },
+          cutout: '60%',
+        }
+      });
+    }
+    function downloadSample() {
+      const headers = 'Monthly_Revenue,Net_Profit_Margin,Burn_Rate_Ratio,Transaction_Count,Repeat_Order_Rate,Business_Tenure_Months';
+      const rows = [
+        '5000000,12.5,0.85,85,25.3,48',
+        '1500000,-15.2,1.35,22,8.7,12',
+        '20000000,28.0,0.52,210,45.6,120',
+        '3000000,-5.8,1.1,45,15.2,36',
+        '8000000,8.3,0.75,120,32.5,60',
+      ];
+      const csv = headers + '\n' + rows.join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'contoh_data_umkm.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // ── Submit ──────────────────────────────────────────────────────────────
+    function submitBatch() {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      document.getElementById('loadingSection').classList.add('show');
+      document.getElementById('resultSection').classList.remove('show');
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<span class="spinner"></span> Memproses...';
+
+      fetch('/api/predict/batch', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById('loadingSection').classList.remove('show');
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = '🚀 Ulangi Prediksi';
+
+          if (!data.success) {
+            alert('Error: ' + data.error);
+            return;
+          }
+
+          showResults(data);
+        })
+        .catch(err => {
+          document.getElementById('loadingSection').classList.remove('show');
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = '🚀 Proses Prediksi';
+          alert('Network error: ' + err.message);
+        });
+    }
+
+    // ── Tampilkan Hasil ─────────────────────────────────────────────────────
+    let lastResult = null;
+
+    function showResults(data) {
+      lastResult = data;
+      document.getElementById('resultSection').classList.add('show');
+
+      // Stats
+      const stats = document.getElementById('statsGrid');
+      stats.innerHTML = `
+        <div class="stat-card total"><div class="stat-value">${data.total}</div><div class="stat-label">Total Diprediksi</div></div>
+        <div class="stat-card sehat"><div class="stat-value">${data.total_sehat}</div><div class="stat-label">Sehat</div></div>
+        <div class="stat-card tidak"><div class="stat-value">${data.total_tidak}</div><div class="stat-label">Tidak Sehat</div></div>
+        <div class="stat-card invalid"><div class="stat-value">${data.total_invalid}</div><div class="stat-label">Baris Invalid</div></div>
+      `;
+
+      // Chart Distribusi
+      const chartSection = document.getElementById('chartSection');
+      chartSection.style.display = 'block';
+      renderDistChart(data.total_sehat, data.total_tidak);
+
+      // Table
+      const tbody = document.getElementById('resultBody');
+      tbody.innerHTML = '';
+      data.predictions.forEach((p, i) => {
+        const tr = document.createElement('tr');
+        const sehat = p.label === 1;
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>Rp ${Number(p.Monthly_Revenue).toLocaleString('id-ID')}</td>
+          <td>${p.Net_Profit_Margin}%</td>
+          <td>${p.Burn_Rate_Ratio}</td>
+          <td>${p.Transaction_Count}</td>
+          <td>${p.Repeat_Order_Rate}%</td>
+          <td>${p.Business_Tenure_Months}</td>
+          <td><span class="badge ${sehat ? 'badge-sehat' : 'badge-tidak'}">${p.label_teks}</span></td>
+          <td>${(p.prob_sehat * 100).toFixed(1)}%</td>
+        `;
+        tr.style.cursor = 'pointer';
+        tr.title = p.rekomendasi;
+        tr.addEventListener('click', () => alert(`💡 Rekomendasi:\n${p.rekomendasi}`));
+        tbody.appendChild(tr);
+      });
+
+      // Error rows
+      const errCtn = document.getElementById('errorContainer');
+      const errList = document.getElementById('errorList');
+      if (data.error_rows && data.error_rows.length > 0) {
+        errCtn.style.display = 'block';
+        document.getElementById('errorSummary').textContent =
+          `⚠️ ${data.total_invalid} baris tidak valid (skip)`;
+        errList.innerHTML = data.error_rows.map(e =>
+          `<li>Baris ${e.baris}: ${e.errors.join('; ')}</li>`
+        ).join('');
+      } else {
+        errCtn.style.display = 'none';
+      }
+
+      window.scrollTo({ top: document.getElementById('resultSection').offsetTop - 20, behavior: 'smooth' });
+    }
+
+    // ── Download Hasil CSV ──────────────────────────────────────────────────
+    function downloadCSV() {
+      if (!lastResult) return;
+      const headers = [
+        'Monthly_Revenue', 'Net_Profit_Margin', 'Burn_Rate_Ratio',
+        'Transaction_Count', 'Repeat_Order_Rate', 'Business_Tenure_Months',
+        'Hasil', 'Prob_Sehat', 'Prob_Tidak_Sehat', 'Rekomendasi'
+      ];
+      const rows = lastResult.predictions.map(p => [
+        p.Monthly_Revenue, p.Net_Profit_Margin, p.Burn_Rate_Ratio,
+        p.Transaction_Count, p.Repeat_Order_Rate, p.Business_Tenure_Months,
+        p.label_teks, p.prob_sehat, p.prob_tidak_sehat,
+        '"' + (p.rekomendasi || '').replace(/"/g, '""') + '"'
+      ].join(','));
+
+      const csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'hasil_prediksi_umkm.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+  </script>
+</body>
+</html>

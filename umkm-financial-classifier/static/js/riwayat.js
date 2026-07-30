@@ -152,31 +152,102 @@ function getFiltered() {
   });
 }
 
-/* ── Export CSV ──────────────────────────────────────────────────────────── */
+/* ── Export PDF ──────────────────────────────────────────────────────────── */
 
-function exportCSV() {
+function exportPDF() {
   const data = getFiltered();
   if (!data.length) { alert("Tidak ada data untuk diekspor."); return; }
 
-  const header = ["ID","Waktu","Pendapatan","Pengeluaran_Estimasi","Net_Profit_Margin","Burn_Rate_Ratio",
-                  "Transaksi","Repeat_Order","Hasil","Prob_Sehat","Rekomendasi"].join(",");
-
-  const rows = data.map(item => {
+  // Buka window baru untuk print
+  const printWindow = window.open('', '_blank');
+  
+  const rows = data.map((item, idx) => {
     const i = item.input || {}; const o = item.output || {};
-    const exp = i.Monthly_Revenue && i.Burn_Rate_Ratio ? Math.round(i.Monthly_Revenue * i.Burn_Rate_Ratio) : "";
-    const rec = (o.rekomendasi || "").replace(/,/g,";").replace(/\n/g," ");
-    return [item.id, item.timestamp, i.Monthly_Revenue, exp,
-            i.Net_Profit_Margin, i.Burn_Rate_Ratio,
-            i.Transaction_Count, i.Repeat_Order_Rate,
-            o.label_teks, o.prob_sehat, `"${rec}"`].join(",");
-  });
+    const exp = i.Monthly_Revenue && i.Burn_Rate_Ratio ? Math.round(i.Monthly_Revenue * i.Burn_Rate_Ratio) : "-";
+    const prob = o.prob_sehat ? (o.prob_sehat * 100).toFixed(1) + "%" : "-";
+    const isS = o.label === 1;
+    return `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${formatTs(item.timestamp)}</td>
+        <td>Rp ${(i.Monthly_Revenue || 0).toLocaleString("id-ID")}</td>
+        <td>Rp ${typeof exp === "number" ? exp.toLocaleString("id-ID") : exp}</td>
+        <td>${i.Net_Profit_Margin != null ? i.Net_Profit_Margin + "%" : "-"}</td>
+        <td>${i.Burn_Rate_Ratio || "-"}</td>
+        <td>${i.Transaction_Count || "-"}</td>
+        <td>${i.Repeat_Order_Rate != null ? i.Repeat_Order_Rate + "%" : "-"}</td>
+        <td style="color:${isS ? "#10b981" : "#ef4444"};font-weight:bold">${o.label_teks || "-"}</td>
+        <td>${prob}</td>
+      </tr>
+    `;
+  }).join("");
 
-  const blob = new Blob([[header,...rows].join("\n")], { type:"text/csv;charset=utf-8;" });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement("a"), {
-    href: url, download: `riwayat_umkm_${new Date().toISOString().slice(0,10)}.csv`
-  });
-  a.click(); URL.revokeObjectURL(url);
+  const total = data.length;
+  const sehat = data.filter(d => (d.output || {}).label === 1).length;
+  const tidak = total - sehat;
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Riwayat Analisis Keuangan UMKM</title>
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #1e293b; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2563eb; padding-bottom: 15px; }
+        .header h1 { font-size: 24px; color: #1e2761; margin-bottom: 5px; }
+        .header p { color: #64748b; font-size: 14px; }
+        .stats { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .stat { background: #f1f5f9; padding: 10px 20px; border-radius: 8px; text-align: center; }
+        .stat-label { font-size: 12px; color: #64748b; }
+        .stat-value { font-size: 20px; font-weight: bold; color: #1e2761; }
+        .stat-value.sehat { color: #10b981; }
+        .stat-value.tidak { color: #ef4444; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { background: #2563eb; color: white; padding: 10px 8px; text-align: left; font-weight: 600; }
+        td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+        tr:nth-child(even) { background: #f8fafc; }
+        .footer { margin-top: 20px; text-align: center; font-size: 11px; color: #94a3b8; }
+        @media print { body { padding: 0; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>📊 Laporan Riwayat Analisis Keuangan UMKM</h1>
+        <p>Skripsi Ridzkyan Buti Pratama - UMKMCek</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Total Analisis</div><div class="stat-value">${total}</div></div>
+        <div class="stat"><div class="stat-label">Sehat</div><div class="stat-value sehat">${sehat}</div></div>
+        <div class="stat"><div class="stat-label">Tidak Sehat</div><div class="stat-value tidak">${tidak}</div></div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Waktu</th>
+            <th>Pendapatan</th>
+            <th>Pengeluaran</th>
+            <th>Margin</th>
+            <th>Burn Rate</th>
+            <th>Transaksi</th>
+            <th>Repeat Order</th>
+            <th>Hasil</th>
+            <th>P(Sehat)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+      <div class="footer">
+        Dicetak pada: ${new Date().toLocaleString("id-ID")} | Sistem Klasifikasi Keuangan UMKM - UMKMCek
+      </div>
+      <script>window.onload = function() { window.print(); }<\/script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
 }
 
 /* ── Hapus Semua ─────────────────────────────────────────────────────────── */

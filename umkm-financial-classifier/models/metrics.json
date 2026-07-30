@@ -4185,5 +4185,5 @@
   ],
   "total_train": 120000,
   "total_test": 30000,
-  "training_time_seconds": 1.2
+  "training_time_seconds": 1.16
 }

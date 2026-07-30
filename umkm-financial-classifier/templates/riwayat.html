@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Riwayat Prediksi — UMKMCek{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tren.css') }}" />
+{% endblock %}
 
 {% block content %}
 
@@ -32,7 +35,7 @@
     </div>
   </div>
   <div class="riwayat-actions">
-    <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇️ Unduh CSV</button>
+    <button class="btn btn-secondary btn-sm" onclick="exportPDF()">📄 Unduh PDF</button>
     <button class="btn btn-danger btn-sm" onclick="clearHistory()">🗑️ Hapus Semua</button>
   </div>
 </div>
@@ -91,8 +94,48 @@
 <!-- Pagination -->
 <div class="pagination" id="pagination"></div>
 
+<!-- Tren Tahunan (fitur baru, independen) -->
+<div id="tren-section" class="tren-container hidden">
+  <div class="tren-header">
+    <h2>📈 Analisis Tren Tahunan</h2>
+    <p class="tren-subtitle">Pantau perkembangan kesehatan keuangan usaha Anda selama setahun terakhir.</p>
+  </div>
+
+  <!-- Ringkasan -->
+  <div class="tren-summary" id="trenSummary"></div>
+
+  <!-- Grafik Tren -->
+  <div class="tren-card">
+    <h3>📊 Tren Probabilitas Sehat per Bulan</h3>
+    <div class="tren-chart-wrapper">
+      <canvas id="trenChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Detail Bulanan -->
+  <div class="tren-card">
+    <h3>📅 Rincian Per Bulan</h3>
+    <div class="tren-table-wrapper">
+      <table class="tren-table" id="trenTable">
+        <thead>
+          <tr>
+            <th>Bulan</th>
+            <th>Jumlah Analisis</th>
+            <th>Rata-rata P(Sehat)</th>
+            <th>✅ Sehat</th>
+            <th>⚠️ Tidak Sehat</th>
+            <th>Kesimpulan</th>
+          </tr>
+        </thead>
+        <tbody id="trenTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/riwayat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tren.js') }}"></script>
 {% endblock %}

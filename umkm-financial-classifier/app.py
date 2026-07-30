@@ -281,6 +281,136 @@ def api_train():
     })
 
 
+# ── Halaman Prediksi Batch ────────────────────────────────────────────────────
+
+@app.route("/batch")
+def batch():
+    """Halaman upload CSV untuk prediksi massal."""
+    return render_template("batch.html")
+
+
+@app.route("/api/predict/batch", methods=["POST"])
+def api_predict_batch():
+    """
+    Terima file CSV, validasi kolom, prediksi massal, kembalikan JSON.
+    """
+    import io
+    import pandas as pd
+
+    if "file" not in request.files:
+        return jsonify({"success": False, "error": "Tidak ada file yang diupload."}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"success": False, "error": "Nama file kosong."}), 400
+
+    if not file.filename.lower().endswith(".csv"):
+        return jsonify({"success": False, "error": "Format file harus .csv."}), 400
+
+    try:
+        df = pd.read_csv(io.StringIO(file.stream.read().decode("utf-8-sig")))
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Gagal membaca CSV: {str(e)}"}), 400
+
+    # Raw rename (sama kyk load_dataset di preprocessing.py)
+    COL_RAW_MAP_BATCH = {
+        "Monthly_Revenue":        "Monthly_Revenue",
+        "Net_Profit_Margin":      "Net_Profit_Margin (%)",
+        "Burn_Rate_Ratio":        "Burn_Rate_Ratio",
+        "Transaction_Count":      "Transaction_Count",
+        "Repeat_Order_Rate":      "Repeat_Order_Rate (%)",
+        "Business_Tenure_Months": "Business_Tenure_Months",
+    }
+    rename_map = {v: k for k, v in COL_RAW_MAP_BATCH.items() if v in df.columns}
+    if rename_map:
+        df = df.rename(columns=rename_map)
+
+    # Validasi kolom
+    from src.preprocessing import validate_csv_columns, FITUR_TERPILIH, BATAS_VALIDASI
+    is_valid, missing = validate_csv_columns(df)
+    if not is_valid:
+        return jsonify({
+            "success": False,
+            "error": f"Kolom tidak lengkap. Kolom yang dibutuhkan: {', '.join(FITUR_TERPILIH)}. "
+                     f"Missing: {', '.join(missing)}"
+        }), 400
+
+    # Validasi nilai per baris (bersihkan baris invalid)
+    valid_rows = []
+    error_rows = []
+    for idx, row in df.iterrows():
+        data = {col: row[col] for col in FITUR_TERPILIH}
+        valid, errs = validate_input(data)
+        if valid:
+            valid_rows.append(idx)
+        else:
+            error_rows.append({"baris": int(idx) + 2, "errors": errs})
+
+    if len(valid_rows) == 0:
+        return jsonify({
+            "success": False,
+            "error": "Tidak ada baris dengan data valid untuk diprediksi.",
+            "error_rows": error_rows
+        }), 400
+
+    try:
+        pipeline = get_pipeline()
+        from src.model import predict_dataframe, generate_rekomendasi
+        df_valid = df.loc[valid_rows].copy()
+        hasil = predict_dataframe(pipeline, df_valid)
+
+        # Tambah rekomendasi per baris
+        hasil["Rekomendasi"] = hasil.apply(
+            lambda r: generate_rekomendasi(r["Prediksi_Label"], [r["Prob_Tidak_Sehat"], r["Prob_Sehat"]]),
+            axis=1
+        )
+
+        # Simpan ke riwayat
+        for idx, row in hasil.iterrows():
+            input_data = {col: row[col] for col in FITUR_TERPILIH}
+            output_data = {
+                "label": int(row["Prediksi_Label"]),
+                "label_teks": row["Prediksi_Teks"],
+                "prob_sehat": row["Prob_Sehat"],
+                "prob_tidak_sehat": row["Prob_Tidak_Sehat"],
+                "rekomendasi": row["Rekomendasi"],
+            }
+            append_history(input_data, output_data)
+
+        # Hasil sebagai list of dict
+        predictions = []
+        for _, row in hasil.iterrows():
+            predictions.append({
+                **{col: (
+                    float(row[col]) if isinstance(row[col], (int, float))
+                    else str(row[col])
+                ) for col in FITUR_TERPILIH},
+                "label": int(row["Prediksi_Label"]),
+                "label_teks": row["Prediksi_Teks"],
+                "prob_sehat": round(float(row["Prob_Sehat"]), 4),
+                "prob_tidak_sehat": round(float(row["Prob_Tidak_Sehat"]), 4),
+                "rekomendasi": row["Rekomendasi"],
+            })
+
+        # Statistik
+        total_sehat = sum(1 for p in predictions if p["label"] == 1)
+        total_tidak = len(predictions) - total_sehat
+
+        return jsonify({
+            "success": True,
+            "total": len(predictions),
+            "total_sehat": total_sehat,
+            "total_tidak": total_tidak,
+            "total_invalid": len(error_rows),
+            "error_rows": error_rows,
+            "predictions": predictions,
+        })
+
+    except Exception as e:
+        app.logger.error(traceback.format_exc())
+        return jsonify({"success": False, "error": f"Kesalahan saat prediksi: {str(e)}"}), 500
+
+
 # ── Error Handlers ───────────────────────────────────────────────────────────
 
 @app.errorhandler(404)
