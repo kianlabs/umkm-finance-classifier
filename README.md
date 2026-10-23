@@ -4,6 +4,7 @@
 ![Flask](https://img.shields.io/badge/Flask-3.0-000000?logo=flask&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4-F7931E?logo=scikit-learn&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-50%20passed-brightgreen)
+![CI](https://github.com/kianlabs/umkm-finance-classifier/actions/workflows/tests.yml/badge.svg)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
 Aplikasi web untuk mengklasifikasikan **kondisi keuangan UMKM ke dalam 4 kelas —
@@ -119,7 +120,7 @@ pytest tests/ -v     # 50 tests: unit + property-based (Hypothesis)
     ├── src/                   # preprocessing, model, evaluation, visualization
     ├── templates/ + static/   # UI: Dashboard, Klasifikasi, Visualisasi, Riwayat
     ├── models/                # gnb_pipeline.pkl + metrics.json (hasil training)
-    ├── data/raw/              # Tempat dataset_umkm.csv (tidak di-commit, lihat .gitignore)
+    ├── data/raw/              # dataset_umkm.csv (150.000 baris, disertakan di repo)
     └── tests/                 # Unit & property-based tests
 ```
 
@@ -138,9 +139,18 @@ bersumber dari Kaggle: **[zkyfauzi/umkm-dataset](https://www.kaggle.com/datasets
 
 - Metrik tinggi (akurasi 88,9%, ROC-AUC 0,979) mencerminkan pola pada data sintetis;
   performa pada data UMKM riil kemungkinan lebih rendah dan perlu validasi lanjutan.
-- File dataset (±20 MB) **tidak disertakan di repo ini** — unduh dari Kaggle lalu
-  letakkan sebagai `umkm-financial-classifier/data/raw/dataset_umkm.csv`.
+- File dataset (±20 MB) **disertakan di repo ini** di
+  `umkm-financial-classifier/data/raw/dataset_umkm.csv` agar hasil penelitian
+  dapat direproduksi persis; salinan aslinya juga tersedia di Kaggle pada tautan di atas.
   Format input klasifikasi mengikuti 5 fitur hasil SBS pada tabel di atas.
+
+## Penulis
+
+**Ridzkyan Buti Pratama** — S.Kom, Teknik Informatika, Universitas Duta Bangsa Surakarta (2026)
+
+- Portfolio: [kian.my.id](https://kian.my.id)
+- LinkedIn: [linkedin.com/in/ridzkyanbutipratama](https://www.linkedin.com/in/ridzkyanbutipratama)
+- GitHub: [@kianlabs](https://github.com/kianlabs)
 
 ## Lisensi
 
