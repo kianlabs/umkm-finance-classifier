@@ -31,8 +31,6 @@ skripsi berikut:
 | **Universitas** | Universitas Duta Bangsa Surakarta |
 | **Tahun** | 2026 |
 
-![Dashboard](docs/screenshots/dashboard.png)
-
 ## 1. Latar Belakang dan Tujuan Penelitian (Bab I)
 
 UMKM merupakan tulang punggung perekonomian, tetapi kondisi keuangannya tidak
