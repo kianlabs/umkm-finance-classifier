@@ -75,11 +75,11 @@ def test_label_consistent_with_argmax(npm, burn, rating, tenure, ror):
     assert label == int(pipeline.classes_[int(np.argmax(proba))])
 
 
-# ── Property 5: Batch preserves row count ────────────────────────────────────
+# ── Property 5: predict_dataframe (utilitas model) preserves row count ───────
 
 @given(st.integers(min_value=1, max_value=500))
 @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
-def test_batch_preserves_row_count(n_rows):
+def test_predict_dataframe_preserves_row_count(n_rows):
     """∀ n: len(predict_dataframe(df_valid)) == n"""
     import pandas as pd
     from src.model import predict_dataframe

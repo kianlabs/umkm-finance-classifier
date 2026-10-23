@@ -1,5 +1,5 @@
 /**
- * riwayat.js — Riwayat prediksi dengan stat pills, filter, export, pagination
+ * riwayat.js — Riwayat prediksi dengan stat pills, filter, pagination
  */
 
 let allHistory  = [];
@@ -146,43 +146,6 @@ function getFiltered() {
   });
 }
 
-/* ── Export PDF ──────────────────────────────────────────────────────────── */
-
-function exportPDF() {
-  const data = getFiltered();
-  if (!data.length) { alert("Tidak ada data untuk diekspor."); return; }
-
-  // Buka window baru untuk print
-  const printWindow = window.open('', '_blank');
-  
-  const rows = data.map((item, idx) => {
-    const i = item.input || {}; const o = item.output || {};
-    const prob = o.prob_max != null ? (o.prob_max * 100).toFixed(1) + "%" : "-";
-    const warna = WARNA_KELAS_R[o.label_teks] || "#1e293b";
-    return `
-      <tr>
-        <td>${idx + 1}</td>
-        <td>${formatTs(item.timestamp)}</td>
-        <td>${i.Net_Profit_Margin != null ? i.Net_Profit_Margin + "%" : "-"}</td>
-        <td>${i.Burn_Rate_Ratio ?? "-"}</td>
-        <td>${i.Avg_Historical_Rating ?? "-"}</td>
-        <td>${i.Repeat_Order_Rate != null ? i.Repeat_Order_Rate + "%" : "-"}</td>
-        <td>${i.Business_Tenure_Months ?? "-"}</td>
-        <td style="color:${warna};font-weight:bold">${o.label_teks || "-"}</td>
-        <td>${prob}</td>
-      </tr>
-    `;
-  }).join("");
-
-  const total = data.length;
-  const count = k => data.filter(d => d.output?.label_teks === k).length;
-  setText("total-predictions", total.toLocaleString("id-ID"));
-  setText("total-critical",   count("Critical").toLocaleString("id-ID"));
-  setText("total-struggling", count("Struggling").toLocaleString("id-ID"));
-  setText("total-growth",     count("Growth").toLocaleString("id-ID"));
-  setText("total-elite",      count("Elite").toLocaleString("id-ID"));
-}
-
 /* ── Render Tabel ─────────────────────────────────────────────────────────── */
 
 function renderTable(data) {
@@ -284,101 +247,6 @@ function getFiltered() {
     }
     return true;
   });
-}
-
-/* ── Export PDF ──────────────────────────────────────────────────────────── */
-
-function exportPDF() {
-  const data = getFiltered();
-  if (!data.length) { alert("Tidak ada data untuk diekspor."); return; }
-
-  // Buka window baru untuk print
-  const printWindow = window.open('', '_blank');
-  
-  const rows = data.map((item, idx) => {
-    const i = item.input || {}; const o = item.output || {};
-    const prob = o.prob_max != null ? (o.prob_max * 100).toFixed(1) + "%" : "-";
-    const warna = WARNA_KELAS_R[o.label_teks] || "#1e293b";
-    return `
-      <tr>
-        <td>${idx + 1}</td>
-        <td>${formatTs(item.timestamp)}</td>
-        <td>${i.Net_Profit_Margin != null ? i.Net_Profit_Margin + "%" : "-"}</td>
-        <td>${i.Burn_Rate_Ratio ?? "-"}</td>
-        <td>${i.Avg_Historical_Rating ?? "-"}</td>
-        <td>${i.Repeat_Order_Rate != null ? i.Repeat_Order_Rate + "%" : "-"}</td>
-        <td>${i.Business_Tenure_Months ?? "-"}</td>
-        <td style="color:${warna};font-weight:bold">${o.label_teks || "-"}</td>
-        <td>${prob}</td>
-      </tr>
-    `;
-  }).join("");
-
-  const total = data.length;
-  const positif = data.filter(d => ["Growth", "Elite"].includes((d.output || {}).label_teks)).length;
-  const negatif = total - positif;
-
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Riwayat Analisis Keuangan UMKM</title>
-      <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #1e293b; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2563eb; padding-bottom: 15px; }
-        .header h1 { font-size: 24px; color: #1e2761; margin-bottom: 5px; }
-        .header p { color: #64748b; font-size: 14px; }
-        .stats { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
-        .stat { background: #f1f5f9; padding: 10px 20px; border-radius: 8px; text-align: center; }
-        .stat-label { font-size: 12px; color: #64748b; }
-        .stat-value { font-size: 20px; font-weight: bold; color: #1e2761; }
-        .stat-value.sehat { color: #10b981; }
-        .stat-value.tidak { color: #ef4444; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th { background: #2563eb; color: white; padding: 10px 8px; text-align: left; font-weight: 600; }
-        td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
-        tr:nth-child(even) { background: #f8fafc; }
-        .footer { margin-top: 20px; text-align: center; font-size: 11px; color: #94a3b8; }
-        @media print { body { padding: 0; } }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>📊 Laporan Riwayat Analisis Keuangan UMKM</h1>
-        <p>Skripsi Ridzkyan Buti Pratama - UMKMCek</p>
-      </div>
-      <div class="stats">
-        <div class="stat"><div class="stat-label">Total Analisis</div><div class="stat-value">${total}</div></div>
-        <div class="stat"><div class="stat-label">Positif (Growth/Elite)</div><div class="stat-value sehat">${positif}</div></div>
-        <div class="stat"><div class="stat-label">Negatif (Critical/Struggling)</div><div class="stat-value tidak">${negatif}</div></div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Waktu</th>
-            <th>Margin</th>
-            <th>Burn Rate</th>
-            <th>Rating</th>
-            <th>Repeat Order</th>
-            <th>Tenure (bln)</th>
-            <th>Kelas</th>
-            <th>Prob Kelas</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
-      <div class="footer">
-        Dicetak pada: ${new Date().toLocaleString("id-ID")} | Sistem Klasifikasi Keuangan UMKM - UMKMCek
-      </div>
-      <script>window.onload = function() { window.print(); }<\/script>
-    </body>
-    </html>
-  `);
-  printWindow.document.close();
 }
 
 /* ── Hapus Semua ─────────────────────────────────────────────────────────── */

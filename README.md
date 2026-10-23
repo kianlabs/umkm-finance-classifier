@@ -74,9 +74,9 @@ kepuasan pelanggan (rating), loyalitas (repeat order), dan pengalaman usaha (ten
 |---|---|
 | ![Dashboard](docs/screenshots/dashboard.png) | ![Klasifikasi](docs/screenshots/klasifikasi.png) |
 
-| Visualisasi | Prediksi Massal |
-|---|---|
-| ![Visualisasi](docs/screenshots/visualisasi.png) | ![Batch](docs/screenshots/batch.png) |
+| Visualisasi |
+|---|
+| ![Visualisasi](docs/screenshots/visualisasi.png) |
 
 ## Cara Menjalankan
 
@@ -117,7 +117,7 @@ pytest tests/ -v     # 50 tests: unit + property-based (Hypothesis)
     ├── train.py               # Training pipeline
     ├── requirements.txt
     ├── src/                   # preprocessing, model, evaluation, visualization
-    ├── templates/ + static/   # UI: Dashboard, Klasifikasi, Visualisasi, Batch, Riwayat
+    ├── templates/ + static/   # UI: Dashboard, Klasifikasi, Visualisasi, Riwayat
     ├── models/                # gnb_pipeline.pkl + metrics.json (hasil training)
     ├── data/raw/              # Tempat dataset_umkm.csv (tidak di-commit, lihat .gitignore)
     └── tests/                 # Unit & property-based tests
@@ -128,8 +128,7 @@ pytest tests/ -v     # 50 tests: unit + property-based (Hypothesis)
 - **Dashboard** — metrik model (macro/weighted) & profil per kelas
 - **Klasifikasi** — form 5 fitur SBS, hasil 4 kelas + probabilitas per kelas + rekomendasi per kelas
 - **Visualisasi** — distribusi kelas, korelasi, KDE per kelas, confusion matrix 4×4, ROC One-vs-Rest, feature importance, skor CV
-- **Prediksi Massal** — upload CSV, validasi per baris, distribusi hasil per kelas, unduh hasil
-- **Riwayat & Tren Tahunan** — log prediksi, filter per kelas, export PDF, tren probabilitas positif per bulan
+- **Riwayat & Tren Tahunan** — log prediksi, filter per kelas, tren probabilitas positif per bulan
 
 ## Catatan Jujur tentang Dataset
 
@@ -141,7 +140,7 @@ bersumber dari Kaggle: **[zkyfauzi/umkm-dataset](https://www.kaggle.com/datasets
   performa pada data UMKM riil kemungkinan lebih rendah dan perlu validasi lanjutan.
 - File dataset (±20 MB) **tidak disertakan di repo ini** — unduh dari Kaggle lalu
   letakkan sebagai `umkm-financial-classifier/data/raw/dataset_umkm.csv`.
-  Contoh kecil format input tersedia di `umkm-financial-classifier/contoh_data_umkm.csv`.
+  Format input klasifikasi mengikuti 5 fitur hasil SBS pada tabel di atas.
 
 ## Lisensi
 

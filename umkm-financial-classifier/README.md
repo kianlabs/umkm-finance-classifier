@@ -42,7 +42,7 @@ umkm-financial-classifier/
 │   ├── evaluation.py         # Metrik macro/weighted, CM 4x4, ROC OvR, CV
 │   └── visualization.py      # Plot multiclass → base64 PNG
 ├── static/css + js           # dashboard, klasifikasi, visualisasi, riwayat, tren
-├── templates/                # base, dashboard, klasifikasi, visualisasi, riwayat, batch
+├── templates/                # base, dashboard, klasifikasi, visualisasi, riwayat
 └── tests/                    # unit + property-based tests
 ```
 
@@ -53,8 +53,7 @@ umkm-financial-classifier/
 | **Dashboard** | Ringkasan metrik model (Accuracy, Macro P/R/F1, ROC-AUC OvR, CV) |
 | **Klasifikasi** | Form 5 fitur SBS + prediksi 4 kelas dengan probabilitas per kelas |
 | **Visualisasi** | EDA, Confusion Matrix 4×4, ROC OvR, Feature Importance, CV scores |
-| **Prediksi Massal** | Upload CSV, validasi, distribusi per kelas, download hasil |
-| **Riwayat** | Log prediksi dengan filter per kelas, export PDF, analisis tren tahunan |
+| **Riwayat** | Log prediksi dengan filter per kelas, analisis tren tahunan |
 
 ## Fitur Input Model (hasil SBS dari 11 kandidat fitur)
 
