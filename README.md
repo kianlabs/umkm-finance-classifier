@@ -6,15 +6,29 @@
 ![Tests](https://img.shields.io/badge/tests-50%20passed-brightgreen)
 ![CI](https://github.com/kianlabs/umkm-finance-classifier/actions/workflows/tests.yml/badge.svg)
 ![License](https://img.shields.io/badge/License-MIT-blue)
+![Skripsi](https://img.shields.io/badge/%F0%9F%8E%93%20Skripsi-Tugas%20Akhir%20S1-important)
 
 Aplikasi web untuk mengklasifikasikan **kondisi keuangan UMKM ke dalam 4 kelas —
 Critical, Struggling, Growth, dan Elite** — menggunakan **Gaussian Naïve Bayes**
 dengan 5 fitur hasil seleksi *Sequential Backward Selection* (SBS).
 
-Proyek ini adalah implementasi dari skripsi:
+## 🎓 Project Skripsi
 
-> **Penerapan Metode Naïve Bayes untuk Klasifikasi Kondisi Keuangan UMKM Berdasarkan Laporan Keuangan**
-> Ridzkyan Buti Pratama — Universitas Duta Bangsa Surakarta, 2026
+Repository ini adalah **program dari skripsi (tugas akhir) penulis** — bukan project
+sampingan. Seluruh isi repo ini (kode aplikasi, model, dataset, dan hasil evaluasi)
+adalah implementasi dari penelitian skripsi berikut:
+
+| | |
+|---|---|
+| **Judul Skripsi** | Penerapan Metode Naïve Bayes untuk Klasifikasi Kondisi Keuangan UMKM Berdasarkan Laporan Keuangan |
+| **Penulis** | Ridzkyan Buti Pratama |
+| **Program Studi** | Teknik Informatika (S1) |
+| **Universitas** | Universitas Duta Bangsa Surakarta |
+| **Tahun** | 2026 |
+
+Aplikasi web di repo ini adalah prototipe yang dibangun dan dievaluasi di dalam
+naskah skripsi tersebut, sehingga fitur dan hasil modelnya mengikuti persis
+yang tertulis di laporan.
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
