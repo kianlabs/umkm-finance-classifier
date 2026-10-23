@@ -12,6 +12,10 @@ Aplikasi web untuk mengklasifikasikan **kondisi keuangan UMKM ke dalam 4 kelas �
 Critical, Struggling, Growth, dan Elite** — menggunakan **Gaussian Naïve Bayes**
 dengan 5 fitur hasil seleksi *Sequential Backward Selection* (SBS).
 
+Penjelasan di README ini disusun mengikuti urutan naskah skripsi: latar belakang dan
+tujuan (Bab I), metode penelitian (Bab III), hasil dan pembahasan (Bab IV), lalu
+implementasi prototipe web dan penutup (Bab V).
+
 ## 🎓 Project Skripsi
 
 Repository ini berisi **program dari skripsi (tugas akhir) penulis**. Program
@@ -27,14 +31,93 @@ skripsi berikut:
 | **Universitas** | Universitas Duta Bangsa Surakarta |
 | **Tahun** | 2026 |
 
-Hasil evaluasi dari rekonstruksi ini sudah diverifikasi dan sama persis dengan
-yang dilaporkan di naskah: akurasi 88,88%, Macro F1-Score 85,21%, Macro ROC-AUC 0,9791.
-
 ![Dashboard](docs/screenshots/dashboard.png)
 
-## Hasil Model (terverifikasi dari retrain)
+## 1. Latar Belakang dan Tujuan Penelitian (Bab I)
 
-Evaluasi pada test set 30.000 baris (split stratified 80/20, `random_state=42`):
+UMKM merupakan tulang punggung perekonomian, tetapi kondisi keuangannya tidak
+selalu mudah dinilai secara manual dari laporan keuangan. Penelitian ini menerapkan
+metode **Naïve Bayes** untuk mengklasifikasikan kondisi keuangan UMKM ke dalam
+empat kelas — **Critical, Struggling, Growth, dan Elite** — agar kondisi keuangan
+sebuah usaha dapat diketahui secara cepat dan terukur dari indikator-indikator
+keuangannya.
+
+Tujuan penelitian:
+
+- Membangun model klasifikasi kondisi keuangan UMKM menggunakan Gaussian Naïve Bayes.
+- Menentukan fitur-fitur yang paling berpengaruh melalui seleksi fitur
+  *Sequential Backward Selection* (SBS).
+- Mengukur kinerja model dengan metrik evaluasi klasifikasi dan validasi silang.
+- Mengimplementasikan model ke dalam prototipe sistem berbasis web.
+
+## 2. Metode Penelitian (Bab III)
+
+Penelitian dilakukan melalui tahapan berikut, sesuai urutan di Bab III naskah:
+
+1. **Pengumpulan Data** — dataset UMKM sebanyak 150.000 baris (lihat seksi Dataset).
+2. **Preprocessing Data** — pembersihan data dan penyiapan fitur numerik untuk pemodelan.
+3. **Pembagian Data** — data dibagi menjadi data latih dan data uji dengan proporsi
+   80:20 secara *stratified* (`random_state=42`), menghasilkan 30.000 data uji.
+4. **Exploratory Data Analysis (EDA)** — eksplorasi distribusi kelas dan hubungan
+   antar fitur sebelum pemodelan.
+5. **Seleksi Fitur Menggunakan SBS** — *Sequential Backward Selection* mengeliminasi
+   fitur satu per satu hingga tersisa fitur yang optimal (hasilnya di Bab IV).
+6. **Pembangunan Model Gaussian Naïve Bayes** — model dilatih dari fitur terpilih
+   tanpa penskalaan fitur.
+7. **Evaluasi Model dan ROC-AUC** — kinerja diukur dengan accuracy, precision,
+   recall, F1-score, confusion matrix, dan ROC-AUC *One-vs-Rest*.
+8. **Validasi Silang 10-Fold** — kestabilan model diuji dengan *10-fold cross-validation*.
+9. **Verifikasi Perhitungan** — hasil prediksi model diverifikasi dengan perhitungan
+   manual probabilitas posterior pada satu sampel data.
+10. **Implementasi Prototipe Sistem Berbasis Web** — model yang telah dievaluasi
+    diterapkan ke aplikasi web Flask (lihat seksi 5).
+
+## 3. Dataset
+
+Dataset bersumber dari Kaggle: **[zkyfauzi/umkm-dataset](https://www.kaggle.com/datasets/zkyfauzi/umkm-dataset)**
+dengan 150.000 baris data UMKM beserta label kondisi keuangannya.
+
+Catatan penting: dataset ini bersifat **sintetis** (dibangkitkan secara artifisial,
+bukan data UMKM riil). Konsekuensinya:
+
+- Metrik tinggi (akurasi 88,9%, ROC-AUC 0,979) mencerminkan pola pada data sintetis;
+  performa pada data UMKM riil kemungkinan lebih rendah dan perlu validasi lanjutan.
+- File dataset (±20 MB) **disertakan di repo ini** di
+  `umkm-financial-classifier/data/raw/dataset_umkm.csv` agar hasil penelitian
+  dapat direproduksi persis; salinan aslinya juga tersedia di Kaggle pada tautan di atas.
+  Format input klasifikasi mengikuti 5 fitur hasil SBS pada tabel di bawah.
+
+## 4. Hasil dan Pembahasan (Bab IV)
+
+### 4.1 Empat Kelas Kondisi Keuangan
+
+| Kelas | Profil |
+|---|---|
+| 🚨 **Critical** | Tekanan keuangan serius: margin negatif, burn rate tinggi, rating & loyalitas rendah |
+| ⚠️ **Struggling** | Keuangan perlu perhatian: margin tipis, pengeluaran mendekati/melebihi pendapatan |
+| 📈 **Growth** | Sehat dan bertumbuh: margin positif, burn rate terkendali, pelanggan loyal |
+| 👑 **Elite** | Sangat kuat: margin tinggi, rating pelanggan tinggi, repeat order tinggi |
+
+### 4.2 Hasil Seleksi Fitur (SBS)
+
+Dataset awal memiliki **11 kandidat fitur numerik**. SBS mengeliminasi fitur satu per satu
+(yang kontribusinya paling kecil) hingga tersisa **5 fitur optimal**:
+
+✅ **Terpilih:** Net Profit Margin (%), Burn Rate Ratio, Avg Historical Rating,
+Business Tenure (bulan), Repeat Order Rate (%)
+
+❌ **Tereliminasi:** Monthly Revenue, Transaction Count, Review Volatility,
+Digital Adoption Score, Location Competitiveness, Sentiment Score
+
+Temuan menariknya: besar omzet (*Monthly Revenue*) dan jumlah transaksi ternyata
+**tidak** menentukan kondisi keuangan UMKM — efisiensi (margin & burn rate),
+kepuasan pelanggan (rating), loyalitas (repeat order), dan pengalaman usaha (tenure) yang menentukan.
+
+### 4.3 Hasil Evaluasi Model
+
+Evaluasi pada test set 30.000 baris (split stratified 80/20, `random_state=42`).
+Hasil evaluasi dari rekonstruksi ini sudah diverifikasi dan sama persis dengan
+yang dilaporkan di naskah:
 
 | Metrik | Nilai |
 |---|---|
@@ -59,31 +142,24 @@ Per kelas:
 Confusion matrix diagonal (prediksi benar): Critical 2.202 · Elite 1.672 · Growth 15.224 · Struggling 7.565.
 Kelas Elite paling sulit dipisahkan dari Growth (precision terendah) — keduanya sama-sama profil keuangan positif.
 
-## 4 Kelas Kondisi Keuangan
+### 4.4 Verifikasi Perhitungan
 
-| Kelas | Profil |
-|---|---|
-| 🚨 **Critical** | Tekanan keuangan serius: margin negatif, burn rate tinggi, rating & loyalitas rendah |
-| ⚠️ **Struggling** | Keuangan perlu perhatian: margin tipis, pengeluaran mendekati/melebihi pendapatan |
-| 📈 **Growth** | Sehat dan bertumbuh: margin positif, burn rate terkendali, pelanggan loyal |
-| 👑 **Elite** | Sangat kuat: margin tinggi, rating pelanggan tinggi, repeat order tinggi |
+Verifikasi pada sampel perhitungan naskah (Net Profit Margin 4,09; Burn Rate Ratio
+0,963; Rating 4,22; Tenure 85 bulan; Repeat Order Rate 19,15) menghasilkan kelas
+**Growth** dengan probabilitas posterior **0,9976 (99,76%)** — sama dengan hasil
+perhitungan yang dilaporkan di naskah.
 
-## Seleksi Fitur — Sequential Backward Selection
+## 5. Implementasi Prototipe Sistem Berbasis Web
 
-Dataset awal memiliki **11 kandidat fitur numerik**. SBS mengeliminasi fitur satu per satu
-(yang kontribusinya paling kecil) hingga tersisa **5 fitur optimal**:
+Model diterapkan ke aplikasi web Flask dengan halaman-halaman sesuai rancangan
+di naskah:
 
-✅ **Terpilih:** Net Profit Margin (%), Burn Rate Ratio, Avg Historical Rating,
-Business Tenure (bulan), Repeat Order Rate (%)
+- **Beranda (Dashboard)** — metrik model (macro/weighted) & profil per kelas
+- **Klasifikasi** — form 5 fitur SBS, hasil 4 kelas + probabilitas per kelas + rekomendasi per kelas
+- **Riwayat** — log prediksi, filter per kelas, tren probabilitas positif per bulan
+- **Visualisasi** — distribusi kelas, korelasi, KDE per kelas, confusion matrix 4×4, ROC One-vs-Rest, feature importance, skor CV
 
-❌ **Tereliminasi:** Monthly Revenue, Transaction Count, Review Volatility,
-Digital Adoption Score, Location Competitiveness, Sentiment Score
-
-Temuan menariknya: besar omzet (*Monthly Revenue*) dan jumlah transaksi ternyata
-**tidak** menentukan kondisi keuangan UMKM — efisiensi (margin & burn rate),
-kepuasan pelanggan (rating), loyalitas (repeat order), dan pengalaman usaha (tenure) yang menentukan.
-
-## Screenshot
+### Screenshot
 
 | Dashboard | Klasifikasi |
 |---|---|
@@ -92,6 +168,14 @@ kepuasan pelanggan (rating), loyalitas (repeat order), dan pengalaman usaha (ten
 | Visualisasi |
 |---|
 | ![Visualisasi](docs/screenshots/visualisasi.png) |
+
+## 6. Penutup (Bab V)
+
+Model Gaussian Naïve Bayes dengan 5 fitur hasil SBS mampu mengklasifikasikan
+kondisi keuangan UMKM dengan akurasi 88,88% dan Macro ROC-AUC 0,9791 pada data uji.
+Faktor yang menentukan kondisi keuangan UMKM bukanlah besar omzet, melainkan
+efisiensi keuangan, kepuasan pelanggan, loyalitas, dan pengalaman usaha.
+Penelitian lanjutan disarankan menggunakan data UMKM riil untuk memvalidasi model.
 
 ## Cara Menjalankan
 
@@ -103,7 +187,7 @@ cd umkm-financial-classifier
 pip install -r requirements.txt
 
 # 3. Siapkan dataset di data/raw/dataset_umkm.csv
-#    (unduh dari Kaggle: zkyfauzi/umkm-dataset — lihat catatan dataset di bawah)
+#    (unduh dari Kaggle: zkyfauzi/umkm-dataset — lihat catatan dataset di atas)
 
 # 4. Training model (sekali)
 python train.py
@@ -137,26 +221,6 @@ pytest tests/ -v     # 50 tests: unit + property-based (Hypothesis)
     ├── data/raw/              # dataset_umkm.csv (150.000 baris, disertakan di repo)
     └── tests/                 # Unit & property-based tests
 ```
-
-## Fitur Aplikasi
-
-- **Dashboard** — metrik model (macro/weighted) & profil per kelas
-- **Klasifikasi** — form 5 fitur SBS, hasil 4 kelas + probabilitas per kelas + rekomendasi per kelas
-- **Visualisasi** — distribusi kelas, korelasi, KDE per kelas, confusion matrix 4×4, ROC One-vs-Rest, feature importance, skor CV
-- **Riwayat & Tren Tahunan** — log prediksi, filter per kelas, tren probabilitas positif per bulan
-
-## Catatan Jujur tentang Dataset
-
-Dataset bersifat **sintetis** (dibangkitkan secara artifisial, bukan data UMKM riil),
-bersumber dari Kaggle: **[zkyfauzi/umkm-dataset](https://www.kaggle.com/datasets/zkyfauzi/umkm-dataset)**
-(150.000 baris). Konsekuensinya:
-
-- Metrik tinggi (akurasi 88,9%, ROC-AUC 0,979) mencerminkan pola pada data sintetis;
-  performa pada data UMKM riil kemungkinan lebih rendah dan perlu validasi lanjutan.
-- File dataset (±20 MB) **disertakan di repo ini** di
-  `umkm-financial-classifier/data/raw/dataset_umkm.csv` agar hasil penelitian
-  dapat direproduksi persis; salinan aslinya juga tersedia di Kaggle pada tautan di atas.
-  Format input klasifikasi mengikuti 5 fitur hasil SBS pada tabel di atas.
 
 ## Penulis
 
