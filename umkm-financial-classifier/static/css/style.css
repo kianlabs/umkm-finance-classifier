@@ -823,3 +823,10 @@ a.btn {
   .howto-grid { grid-template-columns: 1fr; }
   .hero-title { font-size: 1.35rem; }
 }
+
+/* Badge hasil klasifikasi 4 kelas */
+.badge-critical { background:#fee2e2; color:#dc2626; border:2px solid #fca5a5; }
+.badge-struggling { background:#fef3c7; color:#d97706; border:2px solid #fcd34d; }
+.badge-growth { background:var(--clr-sehat-bg); color:var(--clr-sehat); border:2px solid var(--clr-sehat-bdr); }
+.badge-elite { background:#f3e8ff; color:#7c3aed; border:2px solid #d8b4fe; }
+.badge-kelas-sm { display:inline-block; padding:.15rem .55rem; border-radius:999px; font-size:.75rem; font-weight:700; }

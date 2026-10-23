@@ -1,6 +1,6 @@
 """
 test_preprocessing.py
-Unit tests untuk modul src/preprocessing.py
+Unit tests untuk modul src/preprocessing.py (4 kelas, 5 fitur SBS)
 """
 
 import pytest
@@ -15,6 +15,7 @@ from src.preprocessing import (
     FITUR_TERPILIH,
     LABEL_KOLOM,
     LABEL_MAP,
+    KELAS,
     load_dataset,
     select_features,
     split_data,
@@ -24,8 +25,6 @@ from src.preprocessing import (
 
 DATASET_PATH = os.path.join("data", "raw", "dataset_umkm.csv")
 
-
-# ── Fixture ──────────────────────────────────────────────────────────────────
 
 @pytest.fixture(scope="module")
 def df():
@@ -60,6 +59,14 @@ def test_load_dataset_file_not_found():
         load_dataset("path/yang/tidak/ada.csv")
 
 
+def test_fitur_terpilih_lima_sbs():
+    """5 fitur SBS: tanpa Monthly_Revenue/Transaction_Count, dengan Avg_Historical_Rating."""
+    assert len(FITUR_TERPILIH) == 5
+    assert "Avg_Historical_Rating" in FITUR_TERPILIH
+    assert "Monthly_Revenue" not in FITUR_TERPILIH
+    assert "Transaction_Count" not in FITUR_TERPILIH
+
+
 # ── Test select_features ──────────────────────────────────────────────────────
 
 def test_select_features_columns(X_y):
@@ -67,18 +74,19 @@ def test_select_features_columns(X_y):
     assert list(X.columns) == FITUR_TERPILIH
 
 
-def test_select_features_binary_labels(X_y):
+def test_select_features_four_class_labels(X_y):
     X, y = X_y
-    assert set(y.unique()).issubset({0, 1}), f"Label tidak biner: {y.unique()}"
+    assert set(y.unique()) == {0, 1, 2, 3}, f"Label bukan 4 kelas: {y.unique()}"
 
 
-def test_binarisasi_elite_growth_ke_1():
-    """Elite dan Growth harus dipetakan ke 1."""
-    df_test = pd.DataFrame({LABEL_KOLOM: ["Elite", "Growth", "Struggling", "Critical"]})
+def test_label_map_empat_kelas():
+    df_test = pd.DataFrame({LABEL_KOLOM: ["Critical", "Elite", "Growth", "Struggling"]})
     for col in FITUR_TERPILIH:
         df_test[col] = 1.0
     X, y = select_features(df_test)
-    assert list(y) == [1, 1, 0, 0]
+    assert list(y) == [LABEL_MAP["Critical"], LABEL_MAP["Elite"],
+                       LABEL_MAP["Growth"], LABEL_MAP["Struggling"]]
+    assert list(y) == [0, 1, 2, 3]
 
 
 def test_select_features_no_nan(X_y):
@@ -95,17 +103,19 @@ def test_split_data_sizes(X_y):
     total = len(X_tr) + len(X_te)
     assert total == len(X)
     assert abs(len(X_te) / total - 0.2) < 0.01
+    assert len(X_te) == 30000
 
 
 def test_split_data_stratified(X_y):
-    """Proporsi kelas train vs test harus selisih < 1%."""
+    """Proporsi tiap kelas train vs test harus selisih < 1%."""
     X, y = X_y
     _, _, y_tr, y_te = split_data(X, y, test_size=0.2)
-    assert abs(y_tr.mean() - y_te.mean()) < 0.01
+    p_tr = y_tr.value_counts(normalize=True).sort_index()
+    p_te = y_te.value_counts(normalize=True).sort_index()
+    assert (abs(p_tr - p_te) < 0.01).all()
 
 
 def test_split_data_no_overlap(X_y):
-    """Index train dan test tidak boleh tumpang tindih."""
     X, y = X_y
     X_tr, X_te, _, _ = split_data(X, y)
     assert len(set(X_tr.index) & set(X_te.index)) == 0
@@ -114,12 +124,11 @@ def test_split_data_no_overlap(X_y):
 # ── Test validate_input ───────────────────────────────────────────────────────
 
 VALID_INPUT = {
-    "Monthly_Revenue": 50000.0,
     "Net_Profit_Margin": 10.0,
     "Burn_Rate_Ratio": 0.8,
-    "Transaction_Count": 100,
-    "Repeat_Order_Rate": 30.0,
+    "Avg_Historical_Rating": 4.2,
     "Business_Tenure_Months": 24,
+    "Repeat_Order_Rate": 30.0,
 }
 
 
@@ -130,14 +139,14 @@ def test_validate_input_valid():
 
 
 def test_validate_input_missing_field():
-    data = {k: v for k, v in VALID_INPUT.items() if k != "Net_Profit_Margin"}
+    data = {k: v for k, v in VALID_INPUT.items() if k != "Avg_Historical_Rating"}
     ok, errs = validate_input(data)
     assert ok is False
-    assert any("Net_Profit_Margin" in e for e in errs)
+    assert any("Avg_Historical_Rating" in e for e in errs)
 
 
-def test_validate_input_out_of_range_transaction():
-    data = {**VALID_INPUT, "Transaction_Count": -5}
+def test_validate_input_rating_out_of_range():
+    data = {**VALID_INPUT, "Avg_Historical_Rating": 7.5}
     ok, errs = validate_input(data)
     assert ok is False
     assert len(errs) == 1
@@ -150,13 +159,12 @@ def test_validate_input_burn_rate_too_high():
 
 
 def test_validate_input_non_numeric():
-    data = {**VALID_INPUT, "Monthly_Revenue": "abc"}
+    data = {**VALID_INPUT, "Burn_Rate_Ratio": "abc"}
     ok, errs = validate_input(data)
     assert ok is False
 
 
 def test_validate_input_no_mutation():
-    """validate_input tidak boleh mengubah dict input."""
     original = dict(VALID_INPUT)
     validate_input(VALID_INPUT)
     assert VALID_INPUT == original
@@ -171,8 +179,19 @@ def test_validate_csv_columns_valid():
     assert missing == []
 
 
+def test_validate_csv_columns_raw_names():
+    """Nama mentah CSV (dengan satuan) juga diterima."""
+    df_raw = pd.DataFrame(columns=[
+        "Net_Profit_Margin (%)", "Burn_Rate_Ratio", "Avg_Historical_Rating",
+        "Business_Tenure_Months", "Repeat_Order_Rate (%)",
+    ])
+    ok, missing = validate_csv_columns(df_raw)
+    assert ok is True
+    assert missing == []
+
+
 def test_validate_csv_columns_missing():
-    df_bad = pd.DataFrame(columns=["Monthly_Revenue"])
+    df_bad = pd.DataFrame(columns=["Net_Profit_Margin"])
     ok, missing = validate_csv_columns(df_bad)
     assert ok is False
     assert len(missing) == len(FITUR_TERPILIH) - 1

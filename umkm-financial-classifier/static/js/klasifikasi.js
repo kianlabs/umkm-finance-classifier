@@ -1,29 +1,39 @@
 /**
  * klasifikasi.js
- * 6 input sesuai laporan + field pengeluaran sebagai helper hitung otomatis.
- * Pengeluaran → auto-isi Net_Profit_Margin & Burn_Rate_Ratio (tapi masih bisa edit manual).
+ * 5 fitur model hasil SBS + field pendapatan/pengeluaran sebagai helper
+ * hitung otomatis Net_Profit_Margin & Burn_Rate_Ratio (pendapatan &
+ * pengeluaran BUKAN fitur model — tereliminasi SBS).
+ * Hasil: klasifikasi 4 kelas (Critical, Elite, Growth, Struggling)
+ * dengan probabilitas per kelas.
  */
 
-let gaugeChart    = null;
-let autoFillNPM   = false; // flag: NPM sedang diisi otomatis
-let autoFillBurn  = false; // flag: Burn sedang diisi otomatis
+let gaugeChart = null;
+let autoFillNPM = false;
+let autoFillBurn = false;
+
+const WARNA_KELAS = {
+  Critical: "#dc2626",
+  Elite: "#8e44ad",
+  Growth: "#16a34a",
+  Struggling: "#d97706",
+};
+const IKON_KELAS = { Critical: "🚨", Elite: "👑", Growth: "📈", Struggling: "⚠️" };
+const KELAS_LIST = ["Critical", "Elite", "Growth", "Struggling"];
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("klasifikasi-form").addEventListener("submit", handleSubmit);
-  document.getElementById("Monthly_Revenue").addEventListener("input",  triggerAutoCalc);
-  document.getElementById("pengeluaran").addEventListener("input",       triggerAutoCalc);
-
-  // Jika user edit manual NPM / Burn → lepas auto-fill
-  document.getElementById("Net_Profit_Margin").addEventListener("input", () => { autoFillNPM  = false; });
-  document.getElementById("Burn_Rate_Ratio").addEventListener("input",   () => { autoFillBurn = false; });
+  document.getElementById("Monthly_Revenue").addEventListener("input", triggerAutoCalc);
+  document.getElementById("pengeluaran").addEventListener("input", triggerAutoCalc);
+  document.getElementById("Net_Profit_Margin").addEventListener("input", () => { autoFillNPM = false; });
+  document.getElementById("Burn_Rate_Ratio").addEventListener("input", () => { autoFillBurn = false; });
 });
 
-/* ── Auto Kalkulasi ─────────────────────────────────────────────────────────── */
+/* ── Auto Kalkulasi (helper) ──────────────────────────────────────────────── */
 
 function triggerAutoCalc() {
-  const pendapatan  = parseFloat(document.getElementById("Monthly_Revenue").value);
+  const pendapatan = parseFloat(document.getElementById("Monthly_Revenue").value);
   const pengeluaran = parseFloat(document.getElementById("pengeluaran").value);
-  const preview     = document.getElementById("calc-preview");
+  const preview = document.getElementById("calc-preview");
 
   if (!pendapatan || !pengeluaran || isNaN(pendapatan) || isNaN(pengeluaran) || pendapatan <= 0) {
     preview.classList.add("hidden");
@@ -31,39 +41,34 @@ function triggerAutoCalc() {
   }
 
   const laba = pendapatan - pengeluaran;
-  const npm  = (laba / pendapatan) * 100;
+  const npm = (laba / pendapatan) * 100;
   const burn = pengeluaran / pendapatan;
 
-  // Tampilkan preview
   const labaEl = document.getElementById("calc-laba");
-  labaEl.textContent   = "Rp " + laba.toLocaleString("id-ID");
-  labaEl.style.color   = laba >= 0 ? "#16a34a" : "#dc2626";
-  document.getElementById("calc-npm").textContent  = npm.toFixed(2) + "%";
+  labaEl.textContent = "Rp " + laba.toLocaleString("id-ID");
+  labaEl.style.color = laba >= 0 ? "#16a34a" : "#dc2626";
+  document.getElementById("calc-npm").textContent = npm.toFixed(2) + "%";
   document.getElementById("calc-burn").textContent = burn.toFixed(3);
   preview.classList.remove("hidden");
 
-  // Auto-isi NPM (hanya jika user belum edit manual)
   if (autoFillNPM !== false || document.getElementById("Net_Profit_Margin").value === "") {
     autoFillNPM = true;
     document.getElementById("Net_Profit_Margin").value = npm.toFixed(2);
   }
-
-  // Auto-isi Burn Rate (hanya jika user belum edit manual)
   if (autoFillBurn !== false || document.getElementById("Burn_Rate_Ratio").value === "") {
     autoFillBurn = true;
     document.getElementById("Burn_Rate_Ratio").value = burn.toFixed(3);
   }
 }
 
-/* ── Validasi ───────────────────────────────────────────────────────────────── */
+/* ── Validasi (5 fitur SBS, rentang dari dataset) ─────────────────────────── */
 
 const VALIDASI = {
-  Monthly_Revenue:        { min: 0.01,  max: Infinity, label: "Pendapatan Bulanan" },
-  Net_Profit_Margin:      { min: -35.0, max: 45.0,     label: "Margin Keuntungan Bersih" },
-  Burn_Rate_Ratio:        { min: 0.44,  max: 1.55,     label: "Rasio Pengeluaran" },
-  Transaction_Count:      { min: 9,     max: 285,      label: "Jumlah Transaksi" },
-  Repeat_Order_Rate:      { min: 2.0,   max: 54.0,     label: "Tingkat Pelanggan Kembali" },
-  Business_Tenure_Months: { min: 3,     max: 179,      label: "Lama Usaha" },
+  Net_Profit_Margin:      { min: -35.0, max: 45.0,  label: "Margin Keuntungan Bersih" },
+  Burn_Rate_Ratio:        { min: 0.43,  max: 1.55,  label: "Rasio Pengeluaran" },
+  Avg_Historical_Rating:  { min: 1.0,   max: 5.0,   label: "Rating Historis Rata-rata" },
+  Business_Tenure_Months: { min: 3,     max: 179,   label: "Lama Usaha" },
+  Repeat_Order_Rate:      { min: 2.0,   max: 54.06, label: "Tingkat Pelanggan Kembali" },
 };
 
 /* ── Submit ─────────────────────────────────────────────────────────────────── */
@@ -73,12 +78,11 @@ async function handleSubmit(e) {
   clearErrors();
 
   const data = {
-    Monthly_Revenue:        parseFloat(document.getElementById("Monthly_Revenue").value),
     Net_Profit_Margin:      parseFloat(document.getElementById("Net_Profit_Margin").value),
     Burn_Rate_Ratio:        parseFloat(document.getElementById("Burn_Rate_Ratio").value),
-    Transaction_Count:      parseInt(document.getElementById("Transaction_Count").value, 10),
-    Repeat_Order_Rate:      parseFloat(document.getElementById("Repeat_Order_Rate").value),
+    Avg_Historical_Rating:  parseFloat(document.getElementById("Avg_Historical_Rating").value),
     Business_Tenure_Months: parseInt(document.getElementById("Business_Tenure_Months").value, 10),
+    Repeat_Order_Rate:      parseFloat(document.getElementById("Repeat_Order_Rate").value),
   };
 
   let hasError = false;
@@ -87,9 +91,8 @@ async function handleSubmit(e) {
     if (isNaN(val)) {
       setErr(field, `${rule.label} harus diisi dengan angka.`);
       hasError = true;
-    } else if (val < rule.min || (rule.max !== Infinity && val > rule.max)) {
-      const maxStr = rule.max === Infinity ? "∞" : rule.max;
-      setErr(field, `${rule.label} harus antara ${rule.min} s.d. ${maxStr}.`);
+    } else if (val < rule.min || val > rule.max) {
+      setErr(field, `${rule.label} harus antara ${rule.min} s.d. ${rule.max}.`);
       hasError = true;
     }
   }
@@ -98,10 +101,10 @@ async function handleSubmit(e) {
   setLoading(true);
 
   try {
-    const res    = await fetch("/api/predict", {
-      method:  "POST",
+    const res = await fetch("/api/predict", {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify(data),
+      body: JSON.stringify(data),
     });
     const result = await res.json();
 
@@ -126,20 +129,16 @@ function displayResult(result, data) {
   document.getElementById("result-error").classList.add("hidden");
   document.getElementById("result-content").classList.remove("hidden");
 
-  const isSehat = result.label === 1;
-
+  const kelas = result.label_teks;
   const badge = document.getElementById("result-badge");
-  badge.textContent = isSehat ? "✅ KONDISI SEHAT" : "⚠️ PERLU PERHATIAN";
-  badge.className   = "result-badge " + (isSehat ? "badge-sehat" : "badge-tidak");
+  badge.textContent = `${IKON_KELAS[kelas] || ""} KELAS ${kelas.toUpperCase()}`;
+  badge.className = "result-badge badge-" + kelas.toLowerCase();
 
-  document.getElementById("result-tagline").textContent = isSehat
-    ? `Keyakinan sistem: ${(result.prob_sehat * 100).toFixed(1)}% Sehat`
-    : `Keyakinan sistem: ${(result.prob_tidak_sehat * 100).toFixed(1)}% Tidak Sehat`;
+  document.getElementById("result-tagline").textContent =
+    `Keyakinan sistem: ${(result.prob_max * 100).toFixed(1)}% kelas ${kelas}`;
 
-  renderGauge(result.prob_sehat, result.prob_tidak_sehat);
-  document.getElementById("gauge-sehat").textContent = (result.prob_sehat * 100).toFixed(1) + "%";
-  document.getElementById("gauge-tidak").textContent = (result.prob_tidak_sehat * 100).toFixed(1) + "%";
-
+  renderGauge(result.probabilitas);
+  renderLegend(result.probabilitas);
   renderSummary(data);
 
   document.getElementById("rekomendasi-text").textContent = result.rekomendasi;
@@ -147,20 +146,31 @@ function displayResult(result, data) {
     `Dianalisis pada: ${formatTs(result.timestamp)}`;
 }
 
+function renderLegend(probabilitas) {
+  const el = document.getElementById("gauge-legend");
+  if (!el) return;
+  el.innerHTML = KELAS_LIST.map(k => `
+    <div class="gl-item">
+      <span class="gl-dot" style="background:${WARNA_KELAS[k]}"></span>
+      <span>${IKON_KELAS[k]} ${k}:</span><strong>${((probabilitas[k] || 0) * 100).toFixed(1)}%</strong>
+    </div>`).join("");
+}
+
 function renderSummary(data) {
   const pengeluaran = parseFloat(document.getElementById("pengeluaran").value);
+  const pendapatan = parseFloat(document.getElementById("Monthly_Revenue").value);
   const grid = document.getElementById("summary-grid");
 
   const items = [
-    { label: "💰 Pendapatan",        value: "Rp " + data.Monthly_Revenue.toLocaleString("id-ID") },
-    { label: "💸 Pengeluaran",       value: !isNaN(pengeluaran) ? "Rp " + pengeluaran.toLocaleString("id-ID") : "—" },
+    { label: "💰 Pendapatan (helper)", value: !isNaN(pendapatan) ? "Rp " + pendapatan.toLocaleString("id-ID") : "—" },
+    { label: "💸 Pengeluaran (helper)", value: !isNaN(pengeluaran) ? "Rp " + pengeluaran.toLocaleString("id-ID") : "—" },
     { label: "📊 Margin Keuntungan", value: data.Net_Profit_Margin.toFixed(2) + "%",
       color: data.Net_Profit_Margin >= 0 ? "var(--clr-sehat)" : "var(--clr-tidak)" },
     { label: "🔥 Rasio Pengeluaran", value: data.Burn_Rate_Ratio.toFixed(3),
       color: data.Burn_Rate_Ratio < 1 ? "var(--clr-sehat)" : "var(--clr-tidak)" },
-    { label: "🛒 Jumlah Transaksi",  value: data.Transaction_Count + " transaksi" },
-    { label: "🔄 Repeat Order",      value: data.Repeat_Order_Rate.toFixed(1) + "%" },
-    { label: "📅 Lama Usaha",        value: formatTenure(data.Business_Tenure_Months) },
+    { label: "⭐ Rating Historis", value: data.Avg_Historical_Rating.toFixed(2) + " / 5" },
+    { label: "🔄 Repeat Order", value: data.Repeat_Order_Rate.toFixed(1) + "%" },
+    { label: "📅 Lama Usaha", value: formatTenure(data.Business_Tenure_Months) },
   ];
 
   grid.innerHTML = items.map(it => `
@@ -171,23 +181,23 @@ function renderSummary(data) {
   `).join("");
 }
 
-/* ── Gauge ──────────────────────────────────────────────────────────────────── */
+/* ── Gauge: doughnut probabilitas 4 kelas ──────────────────────────────────── */
 
-function renderGauge(probSehat, probTidak) {
+function renderGauge(probabilitas) {
   const ctx = document.getElementById("gauge-chart").getContext("2d");
   if (gaugeChart) gaugeChart.destroy();
   gaugeChart = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Sehat", "Tidak Sehat"],
+      labels: KELAS_LIST,
       datasets: [{
-        data: [probSehat, probTidak],
-        backgroundColor: ["#16a34a", "#dc2626"],
+        data: KELAS_LIST.map(k => probabilitas[k] || 0),
+        backgroundColor: KELAS_LIST.map(k => WARNA_KELAS[k]),
         borderWidth: 3, borderColor: "#fff", hoverOffset: 6,
       }],
     },
     options: {
-      cutout: "72%", rotation: -90, circumference: 180, responsive: false,
+      cutout: "60%", responsive: false,
       plugins: {
         legend: { display: false },
         tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${(ctx.parsed * 100).toFixed(2)}%` } },
@@ -229,7 +239,7 @@ function clearErrors() {
 
 function resetForm() {
   document.getElementById("klasifikasi-form").reset();
-  autoFillNPM  = false;
+  autoFillNPM = false;
   autoFillBurn = false;
   clearErrors();
   document.getElementById("calc-preview").classList.add("hidden");

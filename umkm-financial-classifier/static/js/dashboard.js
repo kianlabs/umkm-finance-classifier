@@ -42,7 +42,7 @@ function setVal(id, value) {
   el.textContent = value != null ? pct(value) : "—";
   const num = parseFloat(value);
   if (!isNaN(num)) {
-    el.style.color = num >= 0.94 ? "#16a34a" : num >= 0.80 ? "#d97706" : "#dc2626";
+    el.style.color = num >= 0.85 ? "#16a34a" : num >= 0.65 ? "#d97706" : "#dc2626";
   }
 }
 

@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.hypothesis/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Editor / tooling lokal
+.vscode/
+.kiro/
+.idea/
+
+# Dataset besar (unduh dari Kaggle: zkyfauzi/umkm-dataset)
+synthetic_umkm_data.csv
+umkm-financial-classifier/data/raw/*.csv
+
+# Riwayat prediksi lokal (data runtime pengguna)
+umkm-financial-classifier/data/prediction_history.json
+
+# OS
+.DS_Store
+Thumbs.db

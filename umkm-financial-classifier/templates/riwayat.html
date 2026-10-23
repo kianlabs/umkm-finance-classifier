@@ -27,11 +27,17 @@
     <div class="stat-pill">
       Total analisis: <strong id="total-predictions">—</strong>
     </div>
-    <div class="stat-pill sehat-pill">
-      ✅ Sehat: <strong id="total-sehat">—</strong>
+    <div class="stat-pill tidak-pill">
+      🚨 Critical: <strong id="total-critical">—</strong>
     </div>
     <div class="stat-pill tidak-pill">
-      ⚠️ Tidak Sehat: <strong id="total-tidak">—</strong>
+      ⚠️ Struggling: <strong id="total-struggling">—</strong>
+    </div>
+    <div class="stat-pill sehat-pill">
+      📈 Growth: <strong id="total-growth">—</strong>
+    </div>
+    <div class="stat-pill sehat-pill">
+      👑 Elite: <strong id="total-elite">—</strong>
     </div>
   </div>
   <div class="riwayat-actions">
@@ -45,9 +51,11 @@
   <div class="filter-item">
     <label>Tampilkan:</label>
     <select id="filter-status" onchange="filterHistory()">
-      <option value="all">Semua Status</option>
-      <option value="sehat">✅ Sehat saja</option>
-      <option value="tidak-sehat">⚠️ Tidak Sehat saja</option>
+      <option value="all">Semua Kelas</option>
+      <option value="Critical">🚨 Critical saja</option>
+      <option value="Struggling">⚠️ Struggling saja</option>
+      <option value="Growth">📈 Growth saja</option>
+      <option value="Elite">👑 Elite saja</option>
     </select>
   </div>
   <div class="filter-item search-item">
@@ -77,13 +85,13 @@
         <tr>
           <th>#</th>
           <th>📅 Waktu Analisis</th>
-          <th>💰 Pendapatan</th>
-          <th>💸 Pengeluaran</th>
           <th>📊 Margin</th>
-          <th>🛒 Transaksi</th>
+          <th>🔥 Burn Rate</th>
+          <th>⭐ Rating</th>
           <th>🔄 Pelanggan Setia</th>
-          <th>🏷️ Hasil</th>
-          <th>📈 P(Sehat)</th>
+          <th>📅 Lama Usaha</th>
+          <th>🏷️ Kelas</th>
+          <th>📈 Prob Kelas</th>
         </tr>
       </thead>
       <tbody id="history-tbody"></tbody>
@@ -106,7 +114,7 @@
 
   <!-- Grafik Tren -->
   <div class="tren-card">
-    <h3>📊 Tren Probabilitas Sehat per Bulan</h3>
+    <h3>📊 Tren Probabilitas Positif (Growth + Elite) per Bulan</h3>
     <div class="tren-chart-wrapper">
       <canvas id="trenChart"></canvas>
     </div>
@@ -121,9 +129,9 @@
           <tr>
             <th>Bulan</th>
             <th>Jumlah Analisis</th>
-            <th>Rata-rata P(Sehat)</th>
-            <th>✅ Sehat</th>
-            <th>⚠️ Tidak Sehat</th>
+            <th>Rata-rata P(Positif)</th>
+            <th>✅ Positif</th>
+            <th>⚠️ Negatif</th>
             <th>Kesimpulan</th>
           </tr>
         </thead>

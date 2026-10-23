@@ -15,20 +15,14 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.preprocessing import validate_input, FITUR_TERPILIH
+from src.preprocessing import validate_input, FITUR_TERPILIH, KELAS
 from src.model import load_pipeline, predict_single
-from src.evaluation import (
-    compute_metrics,
-    compute_confusion_matrix,
-    compute_roc_curve,
-    cross_validate,
-)
 from src.visualization import (
     plot_class_distribution,
     plot_correlation_heatmap,
     plot_kde_per_feature,
     plot_confusion_matrix,
-    plot_roc_curve,
+    plot_roc_curves,
     plot_feature_importance,
     plot_cross_val_scores,
 )
@@ -120,7 +114,7 @@ def riwayat():
 @app.route("/api/predict", methods=["POST"])
 def api_predict():
     """
-    Terima JSON body dengan 6 fitur, kembalikan prediksi dan rekomendasi.
+    Terima JSON body dengan 5 fitur SBS, kembalikan prediksi 4 kelas dan rekomendasi.
     """
     try:
         pipeline = get_pipeline()
@@ -158,19 +152,27 @@ def api_metrics():
         }), 503
 
     return jsonify({
-        "success":         True,
-        "accuracy":        metrics.get("accuracy"),
-        "precision":       metrics.get("precision"),
-        "recall":          metrics.get("recall"),
-        "f1":              metrics.get("f1_weighted"),
-        "roc_auc":         metrics.get("roc_auc"),
-        "cv_mean_acc":     metrics.get("mean_acc"),
-        "cv_std_acc":      metrics.get("std_acc"),
-        "cv_mean_f1":      metrics.get("mean_f1"),
-        "cv_scores":       metrics.get("scores", []),
-        "total_train":     metrics.get("total_train"),
-        "total_test":      metrics.get("total_test"),
-        "training_time":   metrics.get("training_time_seconds"),
+        "success":           True,
+        "accuracy":          metrics.get("accuracy"),
+        "precision":         metrics.get("precision_macro", metrics.get("precision")),
+        "precision_macro":   metrics.get("precision_macro", metrics.get("precision")),
+        "recall":            metrics.get("recall_macro", metrics.get("recall")),
+        "recall_macro":      metrics.get("recall_macro", metrics.get("recall")),
+        "f1":                metrics.get("f1_macro", metrics.get("f1")),
+        "f1_macro":          metrics.get("f1_macro", metrics.get("f1")),
+        "f1_weighted":       metrics.get("f1_weighted"),
+        "roc_auc":           metrics.get("roc_auc"),
+        "roc_auc_per_class": metrics.get("roc_auc_per_class", {}),
+        "per_class":         metrics.get("per_class", {}),
+        "classes":           metrics.get("classes", KELAS),
+        "cv_mean_acc":       metrics.get("mean_acc"),
+        "cv_std_acc":        metrics.get("std_acc"),
+        "cv_mean_f1":        metrics.get("mean_f1"),
+        "cv_std_f1":         metrics.get("std_f1"),
+        "cv_scores":         metrics.get("scores", []),
+        "total_train":       metrics.get("total_train"),
+        "total_test":        metrics.get("total_test"),
+        "training_time":     metrics.get("training_time_seconds"),
     })
 
 
@@ -201,18 +203,17 @@ def api_visualizations():
         X, y = select_features(df)
         X_train, X_test, y_train, y_test = split_data(X, y)
 
-        cm  = np.array(metrics["confusion_matrix"])
-        fpr = np.array(metrics["roc_fpr"])
-        tpr = np.array(metrics["roc_tpr"])
+        cm = np.array(metrics["confusion_matrix"])
+        sample_idx = X_train.sample(min(5000, len(X_train)), random_state=42).index
 
         viz = {
             "success":          True,
             "class_dist":       plot_class_distribution(y),
             "correlation":      plot_correlation_heatmap(X),
-            "kde":              plot_kde_per_feature(X_train.sample(min(5000, len(X_train)), random_state=42),
-                                                     y_train.loc[X_train.sample(min(5000, len(X_train)), random_state=42).index]),
+            "kde":              plot_kde_per_feature(X_train.loc[sample_idx],
+                                                     y_train.loc[sample_idx]),
             "confusion_matrix": plot_confusion_matrix(cm),
-            "roc_curve":        plot_roc_curve(fpr, tpr, metrics["roc_auc"]),
+            "roc_curve":        plot_roc_curves(metrics["roc_curves"]),
             "feature_importance": plot_feature_importance(pipeline),
             "cv_scores":        plot_cross_val_scores(metrics["scores"]),
         }
@@ -312,14 +313,13 @@ def api_predict_batch():
     except Exception as e:
         return jsonify({"success": False, "error": f"Gagal membaca CSV: {str(e)}"}), 400
 
-    # Raw rename (sama kyk load_dataset di preprocessing.py)
+    # Raw rename (sama seperti load_dataset di preprocessing.py) — 5 fitur SBS
     COL_RAW_MAP_BATCH = {
-        "Monthly_Revenue":        "Monthly_Revenue",
         "Net_Profit_Margin":      "Net_Profit_Margin (%)",
         "Burn_Rate_Ratio":        "Burn_Rate_Ratio",
-        "Transaction_Count":      "Transaction_Count",
-        "Repeat_Order_Rate":      "Repeat_Order_Rate (%)",
+        "Avg_Historical_Rating":  "Avg_Historical_Rating",
         "Business_Tenure_Months": "Business_Tenure_Months",
+        "Repeat_Order_Rate":      "Repeat_Order_Rate (%)",
     }
     rename_map = {v: k for k, v in COL_RAW_MAP_BATCH.items() if v in df.columns}
     if rename_map:
@@ -356,12 +356,15 @@ def api_predict_batch():
     try:
         pipeline = get_pipeline()
         from src.model import predict_dataframe, generate_rekomendasi
+        import numpy as np
         df_valid = df.loc[valid_rows].copy()
         hasil = predict_dataframe(pipeline, df_valid)
 
-        # Tambah rekomendasi per baris
+        # Tambah rekomendasi per baris (proba mengikuti urutan KELAS)
         hasil["Rekomendasi"] = hasil.apply(
-            lambda r: generate_rekomendasi(r["Prediksi_Label"], [r["Prob_Tidak_Sehat"], r["Prob_Sehat"]]),
+            lambda r: generate_rekomendasi(
+                int(r["Prediksi_Label"]),
+                np.array([r[f"Prob_{k}"] for k in KELAS])),
             axis=1
         )
 
@@ -371,8 +374,8 @@ def api_predict_batch():
             output_data = {
                 "label": int(row["Prediksi_Label"]),
                 "label_teks": row["Prediksi_Teks"],
-                "prob_sehat": row["Prob_Sehat"],
-                "prob_tidak_sehat": row["Prob_Tidak_Sehat"],
+                "probabilitas": {k: row[f"Prob_{k}"] for k in KELAS},
+                "prob_max": row["Prob_Max"],
                 "rekomendasi": row["Rekomendasi"],
             }
             append_history(input_data, output_data)
@@ -387,20 +390,22 @@ def api_predict_batch():
                 ) for col in FITUR_TERPILIH},
                 "label": int(row["Prediksi_Label"]),
                 "label_teks": row["Prediksi_Teks"],
-                "prob_sehat": round(float(row["Prob_Sehat"]), 4),
-                "prob_tidak_sehat": round(float(row["Prob_Tidak_Sehat"]), 4),
+                "probabilitas": {k: round(float(row[f"Prob_{k}"]), 4) for k in KELAS},
+                "prob_max": round(float(row["Prob_Max"]), 4),
                 "rekomendasi": row["Rekomendasi"],
             })
 
-        # Statistik
-        total_sehat = sum(1 for p in predictions if p["label"] == 1)
-        total_tidak = len(predictions) - total_sehat
+        # Statistik per kelas
+        per_kelas = {k: sum(1 for p in predictions if p["label_teks"] == k) for k in KELAS}
 
         return jsonify({
             "success": True,
             "total": len(predictions),
-            "total_sehat": total_sehat,
-            "total_tidak": total_tidak,
+            "per_kelas": per_kelas,
+            "total_critical": per_kelas["Critical"],
+            "total_elite": per_kelas["Elite"],
+            "total_growth": per_kelas["Growth"],
+            "total_struggling": per_kelas["Struggling"],
             "total_invalid": len(error_rows),
             "error_rows": error_rows,
             "predictions": predictions,

@@ -1,7 +1,14 @@
 """
 model.py
 Membangun, melatih, menyimpan, memuat, dan menjalankan inferensi
-Gaussian Naïve Bayes Pipeline (MinMaxScaler + GaussianNB).
+Gaussian Naïve Bayes untuk klasifikasi 4 kelas kondisi keuangan UMKM
+(Critical, Elite, Growth, Struggling) dengan 5 fitur hasil SBS.
+
+Catatan konfigurasi (terverifikasi eksperimen, lihat hidden_notes/eksperimen.md):
+Pipeline TIDAK memakai scaler. GaussianNB mengestimasi mean & varians
+per fitur per kelas, sehingga penskalaan per fitur tidak diperlukan;
+konfigurasi tanpa scaler mereproduksi metrik naskah secara eksak
+(Accuracy 0,888767), sedangkan MinMaxScaler menggesernya (0,888800).
 """
 
 import os
@@ -9,84 +16,75 @@ import numpy as np
 import pandas as pd
 import joblib
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.naive_bayes import GaussianNB
 
-from src.preprocessing import FITUR_TERPILIH, BATAS_VALIDASI
+from src.preprocessing import FITUR_TERPILIH, KELAS, LABEL_TEKS
 
 
-# ── Rekomendasi Kontekstual ──────────────────────────────────────────────────
+# ── Rekomendasi Kontekstual per Kelas ────────────────────────────────────────
 
-def generate_rekomendasi(label: int, probas: np.ndarray) -> str:
+_REKOMENDASI = {
+    "Elite": (
+        "UMKM Anda berada di kelas Elite — kondisi keuangan sangat kuat dengan "
+        "margin, rating pelanggan, dan loyalitas yang tinggi. Pertahankan strategi "
+        "saat ini, eksplorasi ekspansi pasar, dan pertimbangkan reinvestasi "
+        "keuntungan untuk pertumbuhan jangka panjang."
+    ),
+    "Growth": (
+        "UMKM Anda berada di kelas Growth — kondisi keuangan sehat dan bertumbuh. "
+        "Pantau rasio burn rate, pertahankan repeat order rate, dan tingkatkan "
+        "rating pelanggan agar dapat naik ke kelas Elite."
+    ),
+    "Struggling": (
+        "UMKM Anda berada di kelas Struggling — kondisi keuangan perlu perhatian. "
+        "Fokuskan pada peningkatan net profit margin, tekan burn rate ratio di "
+        "bawah 1, dan tingkatkan repeat order melalui promosi serta layanan "
+        "pelanggan agar rating historis membaik."
+    ),
+    "Critical": (
+        "UMKM Anda berada di kelas Critical — tekanan keuangan serius. Segera "
+        "lakukan efisiensi biaya operasional, evaluasi burn rate ratio, perbaiki "
+        "margin keuntungan, dan cari sumber pendanaan tambahan. Konsultasikan "
+        "dengan konsultan keuangan UMKM."
+    ),
+}
+
+
+def generate_rekomendasi(label, probas: np.ndarray = None) -> str:
     """
-    Buat teks rekomendasi berdasarkan label prediksi dan probabilitas.
-    label: 0 = Tidak Sehat, 1 = Sehat
-    probas: array [P(Tidak Sehat), P(Sehat)]
+    Buat teks rekomendasi berdasarkan kelas prediksi.
+    label: indeks kelas (int) atau nama kelas (str).
+    probas: array probabilitas 4 kelas (opsional, untuk nuansa keyakinan).
     """
-    prob_sehat = probas[1]
-
-    if label == 1:
-        if prob_sehat >= 0.90:
-            return (
-                "UMKM Anda berada dalam kondisi keuangan yang sangat sehat. "
-                "Pertahankan strategi saat ini, eksplorasi peluang ekspansi pasar, "
-                "dan pertimbangkan reinvestasi keuntungan untuk pertumbuhan jangka panjang."
-            )
-        elif prob_sehat >= 0.70:
-            return (
-                "UMKM Anda dalam kondisi keuangan yang sehat. "
-                "Pantau terus rasio burn rate dan tingkatkan repeat order rate "
-                "untuk memperkuat posisi keuangan."
-            )
-        else:
-            return (
-                "UMKM Anda terklasifikasi sehat namun dengan probabilitas moderat. "
-                "Perhatikan efisiensi operasional dan pertahankan margin profit. "
-                "Lakukan evaluasi bulanan terhadap arus kas."
-            )
+    if isinstance(label, (int, np.integer)):
+        nama = LABEL_TEKS[int(label)]
     else:
-        prob_tidak_sehat = probas[0]
-        if prob_tidak_sehat >= 0.90:
-            return (
-                "UMKM Anda menghadapi tekanan keuangan yang serius. "
-                "Segera lakukan efisiensi biaya operasional, evaluasi burn rate, "
-                "dan cari sumber pendanaan tambahan. Konsultasikan dengan konsultan keuangan UMKM."
+        nama = str(label)
+    teks = _REKOMENDASI.get(nama, "")
+    if probas is not None:
+        p = float(np.max(probas))
+        if p < 0.55:
+            teks += (
+                " Catatan: keyakinan model pada prediksi ini moderat "
+                f"({p * 100:.1f}%), lakukan evaluasi berkala terhadap arus kas."
             )
-        elif prob_tidak_sehat >= 0.70:
-            return (
-                "Kondisi keuangan UMKM Anda perlu perhatian. "
-                "Fokuskan pada peningkatan net profit margin, kurangi pengeluaran tidak produktif, "
-                "dan tingkatkan jumlah transaksi melalui strategi promosi digital."
-            )
-        else:
-            return (
-                "UMKM Anda berada di zona keuangan yang perlu diperbaiki. "
-                "Evaluasi struktur biaya, tingkatkan repeat order rate, "
-                "dan pertimbangkan diversifikasi produk untuk meningkatkan pendapatan."
-            )
+    return teks
 
 
 # ── Pipeline ML ──────────────────────────────────────────────────────────────
 
 def build_pipeline() -> Pipeline:
     """
-    Buat sklearn Pipeline:
-      Step 1: MinMaxScaler() — normalisasi ke [0, 1]
-      Step 2: GaussianNB()   — classifier
-    Pipeline menjamin scaler hanya di-fit sekali pada data latih.
+    Buat sklearn Pipeline berisi GaussianNB saja (tanpa scaler —
+    lihat catatan konfigurasi di docstring modul).
     """
     return Pipeline([
-        ("scaler", MinMaxScaler()),
-        ("gnb",    GaussianNB()),
+        ("gnb", GaussianNB()),
     ])
 
 
 def train_pipeline(pipeline: Pipeline, X_train: pd.DataFrame, y_train: pd.Series) -> Pipeline:
-    """
-    Fit pipeline pada data latih.
-    MinMaxScaler.fit() hanya menggunakan X_train.
-    Return: pipeline yang sudah di-fit.
-    """
+    """Fit pipeline pada data latih. Return: pipeline yang sudah di-fit."""
     pipeline.fit(X_train, y_train)
     return pipeline
 
@@ -110,30 +108,38 @@ def load_pipeline(path: str = "models/gnb_pipeline.pkl") -> Pipeline:
     return joblib.load(path)
 
 
+def _proba_dict(pipeline: Pipeline, probas: np.ndarray) -> dict:
+    """Petakan array probabilitas ke dict {nama_kelas: probabilitas}."""
+    classes = list(pipeline.classes_)
+    out = {}
+    for nama in KELAS:
+        # posisi nama kelas di classes_ pipeline
+        target = [k for k, v in LABEL_TEKS.items() if v == nama][0]
+        pos = classes.index(target) if target in classes else KELAS.index(nama)
+        out[nama] = round(float(probas[pos]), 4)
+    return out
+
+
 def predict_single(pipeline: Pipeline, input_dict: dict) -> dict:
     """
-    Prediksi satu sampel dari dict input.
-    Return: {label, label_teks, prob_sehat, prob_tidak_sehat, rekomendasi}
+    Prediksi satu sampel dari dict input (5 fitur SBS).
+    Return: {label, label_teks, probabilitas {kelas: p}, prob_max, rekomendasi}
     """
-    # Susun array input dengan urutan kolom yang benar
-    X = np.array([[
-        float(input_dict["Monthly_Revenue"]),
-        float(input_dict["Net_Profit_Margin"]),
-        float(input_dict["Burn_Rate_Ratio"]),
-        int(float(input_dict["Transaction_Count"])),
-        float(input_dict["Repeat_Order_Rate"]),
-        int(float(input_dict["Business_Tenure_Months"])),
-    ]])
+    X = pd.DataFrame(
+        [[float(input_dict[f]) for f in FITUR_TERPILIH]],
+        columns=FITUR_TERPILIH,
+    )
 
-    label  = int(pipeline.predict(X)[0])
-    probas = pipeline.predict_proba(X)[0]  # [P(0), P(1)]
+    label = int(pipeline.predict(X)[0])
+    probas = pipeline.predict_proba(X)[0]
+    prob_dict = _proba_dict(pipeline, probas)
 
     return {
-        "label":            label,
-        "label_teks":       "Sehat" if label == 1 else "Tidak Sehat",
-        "prob_sehat":       round(float(probas[1]), 4),
-        "prob_tidak_sehat": round(float(probas[0]), 4),
-        "rekomendasi":      generate_rekomendasi(label, probas),
+        "label": label,
+        "label_teks": LABEL_TEKS[label],
+        "probabilitas": prob_dict,
+        "prob_max": round(float(np.max(probas)), 4),
+        "rekomendasi": generate_rekomendasi(label, probas),
     }
 
 
@@ -141,17 +147,21 @@ def predict_dataframe(pipeline: Pipeline, df: pd.DataFrame) -> pd.DataFrame:
     """
     Prediksi seluruh baris DataFrame.
     Menambahkan kolom: Prediksi_Label, Prediksi_Teks,
-    Prob_Sehat, Prob_Tidak_Sehat.
+    Prob_Critical, Prob_Elite, Prob_Growth, Prob_Struggling, Prob_Max.
     """
     result = df.copy()
-    X = df[FITUR_TERPILIH].values.astype(float)
+    X = df[FITUR_TERPILIH]
 
     labels = pipeline.predict(X)
-    probas = pipeline.predict_proba(X)  # shape (n, 2)
+    probas = pipeline.predict_proba(X)
+    classes = list(pipeline.classes_)
 
-    result["Prediksi_Label"]    = labels
-    result["Prediksi_Teks"]     = ["Sehat" if l == 1 else "Tidak Sehat" for l in labels]
-    result["Prob_Sehat"]        = [round(float(p[1]), 4) for p in probas]
-    result["Prob_Tidak_Sehat"]  = [round(float(p[0]), 4) for p in probas]
+    result["Prediksi_Label"] = [int(l) for l in labels]
+    result["Prediksi_Teks"] = [LABEL_TEKS[int(l)] for l in labels]
+    for nama in KELAS:
+        target = [k for k, v in LABEL_TEKS.items() if v == nama][0]
+        pos = classes.index(target) if target in classes else KELAS.index(nama)
+        result[f"Prob_{nama}"] = [round(float(p[pos]), 4) for p in probas]
+    result["Prob_Max"] = [round(float(np.max(p)), 4) for p in probas]
 
     return result

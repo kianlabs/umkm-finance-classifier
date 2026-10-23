@@ -1,7 +1,7 @@
 """
 test_pbt.py
 Property-Based Tests menggunakan Hypothesis.
-Memverifikasi invariant matematis untuk semua input valid.
+Memverifikasi invariant matematis untuk semua input valid (model 4 kelas).
 """
 
 import pytest
@@ -11,15 +11,14 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from hypothesis import given, settings, assume, HealthCheck
+from hypothesis import given, settings, HealthCheck
 from hypothesis import strategies as st
 
-# ── Setup: muat pipeline sekali ───────────────────────────────────────────────
-
 DATASET_PATH = os.path.join("data", "raw", "dataset_umkm.csv")
-MODEL_PATH   = os.path.join("models", "gnb_pipeline.pkl")
+MODEL_PATH = os.path.join("models", "gnb_pipeline.pkl")
 
 _PIPELINE = None
+
 
 def get_pipeline():
     global _PIPELINE
@@ -31,52 +30,52 @@ def get_pipeline():
     return _PIPELINE
 
 
-# ── Strategy Helper ───────────────────────────────────────────────────────────
-
 def valid_input_strategy():
     return st.fixed_dictionaries({
-        "Monthly_Revenue":        st.floats(min_value=0.01,  max_value=1e8,   allow_nan=False, allow_infinity=False),
         "Net_Profit_Margin":      st.floats(min_value=-35.0, max_value=45.0,  allow_nan=False, allow_infinity=False),
-        "Burn_Rate_Ratio":        st.floats(min_value=0.44,  max_value=1.55,  allow_nan=False, allow_infinity=False),
-        "Transaction_Count":      st.integers(min_value=9,   max_value=285),
-        "Repeat_Order_Rate":      st.floats(min_value=2.0,   max_value=54.0,  allow_nan=False, allow_infinity=False),
+        "Burn_Rate_Ratio":        st.floats(min_value=0.43,  max_value=1.55,  allow_nan=False, allow_infinity=False),
+        "Avg_Historical_Rating":  st.floats(min_value=1.0,   max_value=5.0,   allow_nan=False, allow_infinity=False),
         "Business_Tenure_Months": st.integers(min_value=3,   max_value=179),
+        "Repeat_Order_Rate":      st.floats(min_value=2.0,   max_value=54.06, allow_nan=False, allow_infinity=False),
     })
 
 
-# ── Property 1: Probabilitas Berjumlah 1 ────────────────────────────────────
+# ── Property 1: Probabilitas 4 kelas berjumlah 1 ─────────────────────────────
 
 @given(valid_input_strategy())
 @settings(max_examples=300, suppress_health_check=[HealthCheck.too_slow])
 def test_prob_sum_to_one(data):
-    """∀ input valid: P(Sehat) + P(Tidak Sehat) == 1.0 ± 1e-6"""
+    """∀ input valid: Σ probabilitas 4 kelas == 1.0 ± 1e-3"""
     from src.model import predict_single
     hasil = predict_single(get_pipeline(), data)
-    total = hasil["prob_sehat"] + hasil["prob_tidak_sehat"]
-    assert abs(total - 1.0) < 1e-4, f"Probabilitas tidak berjumlah 1: {total}"
+    total = sum(hasil["probabilitas"].values())
+    assert abs(total - 1.0) < 1e-3, f"Probabilitas tidak berjumlah 1: {total}"
+    assert hasil["label"] in {0, 1, 2, 3}
 
 
-# ── Property 2: Label Konsisten dengan Argmax Proba ──────────────────────────
+# ── Property 2: Label konsisten dengan argmax proba ──────────────────────────
 
 @given(
-    revenue = st.floats(min_value=0.01, max_value=1e8,  allow_nan=False, allow_infinity=False),
-    npm     = st.floats(min_value=-35.0, max_value=45.0, allow_nan=False, allow_infinity=False),
-    burn    = st.floats(min_value=0.44,  max_value=1.55, allow_nan=False, allow_infinity=False),
-    txn     = st.integers(min_value=9, max_value=285),
-    ror     = st.floats(min_value=2.0,   max_value=54.0, allow_nan=False, allow_infinity=False),
-    tenure  = st.integers(min_value=3, max_value=179),
+    npm    = st.floats(min_value=-35.0, max_value=45.0,  allow_nan=False, allow_infinity=False),
+    burn   = st.floats(min_value=0.43,  max_value=1.55,  allow_nan=False, allow_infinity=False),
+    rating = st.floats(min_value=1.0,   max_value=5.0,   allow_nan=False, allow_infinity=False),
+    tenure = st.integers(min_value=3,   max_value=179),
+    ror    = st.floats(min_value=2.0,   max_value=54.06, allow_nan=False, allow_infinity=False),
 )
 @settings(max_examples=200, suppress_health_check=[HealthCheck.too_slow])
-def test_label_consistent_with_argmax(revenue, npm, burn, txn, ror, tenure):
+def test_label_consistent_with_argmax(npm, burn, rating, tenure, ror):
     """∀ input: predict(X) == argmax(predict_proba(X))"""
+    import pandas as pd
+    from src.preprocessing import FITUR_TERPILIH
     pipeline = get_pipeline()
-    X = [[revenue, npm, burn, txn, ror, tenure]]
+    X = pd.DataFrame([[npm, burn, rating, tenure, ror]], columns=FITUR_TERPILIH)
     label = int(pipeline.predict(X)[0])
     proba = pipeline.predict_proba(X)[0]
-    assert label == int(np.argmax(proba))
+    assert proba.shape == (4,)
+    assert label == int(pipeline.classes_[int(np.argmax(proba))])
 
 
-# ── Property 5: Batch Preserves Row Count ────────────────────────────────────
+# ── Property 5: Batch preserves row count ────────────────────────────────────
 
 @given(st.integers(min_value=1, max_value=500))
 @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
@@ -84,24 +83,21 @@ def test_batch_preserves_row_count(n_rows):
     """∀ n: len(predict_dataframe(df_valid)) == n"""
     import pandas as pd
     from src.model import predict_dataframe
-    from src.preprocessing import FITUR_TERPILIH
 
-    # Buat DataFrame valid dengan n_rows
     rng = np.random.default_rng(42)
-    df  = pd.DataFrame({
-        "Monthly_Revenue":        rng.uniform(1e4, 1e7, n_rows),
+    df = pd.DataFrame({
         "Net_Profit_Margin":      rng.uniform(-35, 45, n_rows),
-        "Burn_Rate_Ratio":        rng.uniform(0.44, 1.55, n_rows),
-        "Transaction_Count":      rng.integers(9, 285, n_rows),
-        "Repeat_Order_Rate":      rng.uniform(2, 54, n_rows),
+        "Burn_Rate_Ratio":        rng.uniform(0.43, 1.55, n_rows),
+        "Avg_Historical_Rating":  rng.uniform(1.0, 5.0, n_rows),
         "Business_Tenure_Months": rng.integers(3, 179, n_rows),
+        "Repeat_Order_Rate":      rng.uniform(2, 54, n_rows),
     })
 
     result = predict_dataframe(get_pipeline(), df)
     assert len(result) == n_rows, f"Row count berubah: {len(result)} != {n_rows}"
 
 
-# ── Property: Validasi Input Tidak Mutasi Dict ────────────────────────────────
+# ── Property: Validasi input tidak mutasi dict ────────────────────────────────
 
 @given(valid_input_strategy())
 @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])

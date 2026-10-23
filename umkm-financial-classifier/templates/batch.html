@@ -201,14 +201,13 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Pendapatan</th>
                 <th>Margin</th>
                 <th>Burn Rate</th>
-                <th>Transaksi</th>
+                <th>Rating</th>
                 <th>Repeat Order</th>
                 <th>Tenur (bln)</th>
-                <th>Hasil</th>
-                <th>Prob Sehat</th>
+                <th>Kelas</th>
+                <th>Prob Kelas</th>
               </tr>
             </thead>
             <tbody id="resultBody"></tbody>
@@ -229,7 +228,7 @@
     <div class="footer-content">
       <div class="footer-brand">📊 UMKMCek</div>
       <p class="footer-text">Sistem Klasifikasi Kondisi Keuangan UMKM berbasis Gaussian Naïve Bayes</p>
-      <p class="footer-copy">© 2024 · Universitas Duta Bangsa Surakarta · Skripsi Ridzkyan Buti Pratama</p>
+      <p class="footer-copy">© 2026 · Universitas Duta Bangsa Surakarta · Skripsi Ridzkyan Buti Pratama</p>
     </div>
   </footer>
 
@@ -269,18 +268,19 @@
     // ── Download Template Contoh ────────────────────────────────────────────
     let distChartInstance = null;
 
-    function renderDistChart(sehat, tidak) {
+    function renderDistChart(perKelas) {
       if (distChartInstance) distChartInstance.destroy();
-      const total = sehat + tidak;
+      const labelsK = ['Critical', 'Struggling', 'Growth', 'Elite'];
+      const total = labelsK.reduce((a, k) => a + (perKelas[k] || 0), 0);
       if (total === 0) return;
       const ctx = document.getElementById('distChart').getContext('2d');
       distChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Sehat', 'Tidak Sehat'],
+          labels: labelsK,
           datasets: [{
-            data: [sehat, tidak],
-            backgroundColor: ['#10b981', '#ef4444'],
+            data: labelsK.map(k => perKelas[k] || 0),
+            backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#8b5cf6'],
             borderColor: ['#fff', '#fff'],
             borderWidth: 3,
             hoverOffset: 8,
@@ -309,13 +309,13 @@
       });
     }
     function downloadSample() {
-      const headers = 'Monthly_Revenue,Net_Profit_Margin,Burn_Rate_Ratio,Transaction_Count,Repeat_Order_Rate,Business_Tenure_Months';
+      const headers = 'Net_Profit_Margin,Burn_Rate_Ratio,Avg_Historical_Rating,Business_Tenure_Months,Repeat_Order_Rate';
       const rows = [
-        '5000000,12.5,0.85,85,25.3,48',
-        '1500000,-15.2,1.35,22,8.7,12',
-        '20000000,28.0,0.52,210,45.6,120',
-        '3000000,-5.8,1.1,45,15.2,36',
-        '8000000,8.3,0.75,120,32.5,60',
+        '12.5,0.85,4.3,48,25.3',
+        '-15.2,1.35,2.6,12,8.7',
+        '28.0,0.52,4.9,120,45.6',
+        '-5.8,1.1,3.4,36,15.2',
+        '8.3,0.75,4.1,60,32.5',
       ];
       const csv = headers + '\n' + rows.join('\n');
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -372,32 +372,33 @@
       const stats = document.getElementById('statsGrid');
       stats.innerHTML = `
         <div class="stat-card total"><div class="stat-value">${data.total}</div><div class="stat-label">Total Diprediksi</div></div>
-        <div class="stat-card sehat"><div class="stat-value">${data.total_sehat}</div><div class="stat-label">Sehat</div></div>
-        <div class="stat-card tidak"><div class="stat-value">${data.total_tidak}</div><div class="stat-label">Tidak Sehat</div></div>
+        <div class="stat-card tidak"><div class="stat-value">${data.total_critical}</div><div class="stat-label">🚨 Critical</div></div>
+        <div class="stat-card invalid"><div class="stat-value">${data.total_struggling}</div><div class="stat-label">⚠️ Struggling</div></div>
+        <div class="stat-card sehat"><div class="stat-value">${data.total_growth}</div><div class="stat-label">📈 Growth</div></div>
+        <div class="stat-card total"><div class="stat-value">${data.total_elite}</div><div class="stat-label">👑 Elite</div></div>
         <div class="stat-card invalid"><div class="stat-value">${data.total_invalid}</div><div class="stat-label">Baris Invalid</div></div>
       `;
 
       // Chart Distribusi
       const chartSection = document.getElementById('chartSection');
       chartSection.style.display = 'block';
-      renderDistChart(data.total_sehat, data.total_tidak);
+      renderDistChart(data.per_kelas || {});
 
       // Table
       const tbody = document.getElementById('resultBody');
       tbody.innerHTML = '';
+      const BADGE_K = { Critical: 'badge-tidak', Struggling: 'badge-tidak', Growth: 'badge-sehat', Elite: 'badge-sehat' };
       data.predictions.forEach((p, i) => {
         const tr = document.createElement('tr');
-        const sehat = p.label === 1;
         tr.innerHTML = `
           <td>${i + 1}</td>
-          <td>Rp ${Number(p.Monthly_Revenue).toLocaleString('id-ID')}</td>
           <td>${p.Net_Profit_Margin}%</td>
           <td>${p.Burn_Rate_Ratio}</td>
-          <td>${p.Transaction_Count}</td>
+          <td>${p.Avg_Historical_Rating}</td>
           <td>${p.Repeat_Order_Rate}%</td>
           <td>${p.Business_Tenure_Months}</td>
-          <td><span class="badge ${sehat ? 'badge-sehat' : 'badge-tidak'}">${p.label_teks}</span></td>
-          <td>${(p.prob_sehat * 100).toFixed(1)}%</td>
+          <td><span class="badge ${BADGE_K[p.label_teks] || 'badge-sehat'}">${p.label_teks}</span></td>
+          <td>${(p.prob_max * 100).toFixed(1)}%</td>
         `;
         tr.style.cursor = 'pointer';
         tr.title = p.rekomendasi;
@@ -426,14 +427,16 @@
     function downloadCSV() {
       if (!lastResult) return;
       const headers = [
-        'Monthly_Revenue', 'Net_Profit_Margin', 'Burn_Rate_Ratio',
-        'Transaction_Count', 'Repeat_Order_Rate', 'Business_Tenure_Months',
-        'Hasil', 'Prob_Sehat', 'Prob_Tidak_Sehat', 'Rekomendasi'
+        'Net_Profit_Margin', 'Burn_Rate_Ratio', 'Avg_Historical_Rating',
+        'Business_Tenure_Months', 'Repeat_Order_Rate',
+        'Kelas', 'Prob_Critical', 'Prob_Elite', 'Prob_Growth', 'Prob_Struggling', 'Rekomendasi'
       ];
       const rows = lastResult.predictions.map(p => [
-        p.Monthly_Revenue, p.Net_Profit_Margin, p.Burn_Rate_Ratio,
-        p.Transaction_Count, p.Repeat_Order_Rate, p.Business_Tenure_Months,
-        p.label_teks, p.prob_sehat, p.prob_tidak_sehat,
+        p.Net_Profit_Margin, p.Burn_Rate_Ratio, p.Avg_Historical_Rating,
+        p.Business_Tenure_Months, p.Repeat_Order_Rate,
+        p.label_teks,
+        p.probabilitas?.Critical ?? '', p.probabilitas?.Elite ?? '',
+        p.probabilitas?.Growth ?? '', p.probabilitas?.Struggling ?? '',
         '"' + (p.rekomendasi || '').replace(/"/g, '""') + '"'
       ].join(','));
 

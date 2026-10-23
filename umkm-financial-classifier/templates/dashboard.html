@@ -8,9 +8,9 @@
   <div class="hero-text">
     <h1 class="hero-title">Cek Kesehatan Keuangan Usaha Anda 🚀</h1>
     <p class="hero-desc">
-      Masukkan data keuangan usaha Anda dan sistem kami akan menganalisis secara otomatis
-      apakah kondisi keuangan usaha Anda <strong>Sehat</strong> atau perlu <strong>perhatian khusus</strong>.
-      Didukung teknologi <em>Gaussian Naïve Bayes</em> dengan akurasi <strong>94,70%</strong>.
+      Masukkan data keuangan usaha Anda dan sistem kami akan mengklasifikasikan kondisi
+      keuangan usaha Anda ke dalam <strong>4 kelas</strong>: Critical, Struggling, Growth, atau Elite.
+      Didukung teknologi <em>Gaussian Naïve Bayes</em> dengan akurasi <strong>88,88%</strong> dan Macro F1 <strong>85,21%</strong>.
     </p>
     <div class="hero-actions">
       <a href="/klasifikasi" class="btn btn-primary btn-lg">🔍 Cek Usaha Saya Sekarang</a>
@@ -21,17 +21,17 @@
     <div class="hero-card-demo">
       <div class="demo-row">
         <span class="demo-dot green"></span>
-        <span>Usaha A — <strong style="color:var(--clr-sehat)">✅ Sehat</strong></span>
+        <span>Usaha A — <strong style="color:#8e44ad">👑 Elite</strong></span>
         <span class="demo-pct">96%</span>
       </div>
       <div class="demo-row">
         <span class="demo-dot red"></span>
-        <span>Usaha B — <strong style="color:var(--clr-tidak)">⚠️ Tidak Sehat</strong></span>
+        <span>Usaha B — <strong style="color:var(--clr-tidak)">🚨 Critical</strong></span>
         <span class="demo-pct">81%</span>
       </div>
       <div class="demo-row">
         <span class="demo-dot green"></span>
-        <span>Usaha C — <strong style="color:var(--clr-sehat)">✅ Sehat</strong></span>
+        <span>Usaha C — <strong style="color:var(--clr-sehat)">📈 Growth</strong></span>
         <span class="demo-pct">88%</span>
       </div>
     </div>
@@ -45,7 +45,7 @@
     <div class="howto-num">1</div>
     <div class="howto-icon">📝</div>
     <h3>Isi Data Keuangan</h3>
-    <p>Masukkan pendapatan, pengeluaran, jumlah transaksi, dan informasi usaha Anda. Cukup 5 pertanyaan sederhana.</p>
+    <p>Masukkan margin keuntungan, rasio pengeluaran, rating pelanggan, repeat order, dan lama usaha Anda. Cukup 5 indikator hasil seleksi fitur SBS.</p>
   </div>
   <div class="howto-card">
     <div class="howto-num">2</div>
@@ -71,12 +71,12 @@
     <div class="metric-icon">🎯</div>
     <div class="metric-value" id="val-accuracy">—</div>
     <div class="metric-label">Akurasi</div>
-    <div class="metric-desc">Dari 100 prediksi, ~94 benar</div>
+    <div class="metric-desc">Dari 100 prediksi, ~89 benar</div>
   </div>
   <div class="metric-card accent-green skeleton">
     <div class="metric-icon">⚖️</div>
     <div class="metric-value" id="val-f1">—</div>
-    <div class="metric-label">F1-Score</div>
+    <div class="metric-label">Macro F1-Score</div>
     <div class="metric-desc">Keseimbangan presisi & recall</div>
   </div>
   <div class="metric-card accent-purple skeleton">
@@ -94,13 +94,13 @@
   <div class="metric-card accent-teal skeleton">
     <div class="metric-icon">🔍</div>
     <div class="metric-value" id="val-precision">—</div>
-    <div class="metric-label">Precision</div>
-    <div class="metric-desc">Ketepatan prediksi positif</div>
+    <div class="metric-label">Macro Precision</div>
+    <div class="metric-desc">Rata-rata presisi 4 kelas</div>
   </div>
   <div class="metric-card accent-pink skeleton">
     <div class="metric-icon">📡</div>
     <div class="metric-value" id="val-recall">—</div>
-    <div class="metric-label">Recall</div>
+    <div class="metric-label">Macro Recall</div>
     <div class="metric-desc">Kelengkapan deteksi</div>
   </div>
 </div>
@@ -125,9 +125,10 @@
     <h3>Tentang Model</h3>
     <table class="info-table">
       <tr><td>Algoritma</td><td><strong>Gaussian Naïve Bayes</strong></td></tr>
-      <tr><td>Normalisasi</td><td>Min-Max Scaler [0–1]</td></tr>
+      <tr><td>Seleksi fitur</td><td>Sequential Backward Selection (11 → 5 fitur)</td></tr>
+      <tr><td>Normalisasi</td><td>Tidak ada — GaussianNB murni</td></tr>
       <tr><td>Validasi</td><td>10-Fold Stratified CV</td></tr>
-      <tr><td>Label kelas</td><td>Sehat / Tidak Sehat</td></tr>
+      <tr><td>Label kelas</td><td>4 kelas: Critical, Struggling, Growth, Elite</td></tr>
       <tr><td>Framework</td><td>scikit-learn 1.4</td></tr>
     </table>
   </div>
@@ -135,12 +136,11 @@
     <div class="info-card-icon">📊</div>
     <h3>Indikator yang Dianalisis</h3>
     <ul class="feature-list">
-      <li><span class="feat-icon">💰</span><div><strong>Pendapatan Bulanan</strong><small>Total omzet per bulan</small></div></li>
       <li><span class="feat-icon">📉</span><div><strong>Margin Keuntungan</strong><small>Persentase laba bersih</small></div></li>
       <li><span class="feat-icon">🔥</span><div><strong>Rasio Pengeluaran</strong><small>Pengeluaran vs pendapatan</small></div></li>
-      <li><span class="feat-icon">🛒</span><div><strong>Jumlah Transaksi</strong><small>Aktivitas penjualan per bulan</small></div></li>
-      <li><span class="feat-icon">🔄</span><div><strong>Pelanggan Setia</strong><small>Persentase repeat order</small></div></li>
+      <li><span class="feat-icon">⭐</span><div><strong>Rating Historis</strong><small>Rata-rata ulasan pelanggan (1–5)</small></div></li>
       <li><span class="feat-icon">📅</span><div><strong>Lama Usaha</strong><small>Pengalaman & kestabilan usaha</small></div></li>
+      <li><span class="feat-icon">🔄</span><div><strong>Pelanggan Setia</strong><small>Persentase repeat order</small></div></li>
     </ul>
   </div>
 </div>

@@ -23,7 +23,7 @@
   <div class="form-card">
     <div class="form-card-header">
       <h2 class="form-title">📝 Indikator Keuangan Usaha</h2>
-      <span class="form-step-badge">6 indikator</span>
+      <span class="form-step-badge">5 indikator</span>
     </div>
 
     <form id="klasifikasi-form" novalidate>
@@ -34,15 +34,16 @@
       <!-- Pendapatan -->
       <div class="form-group">
         <label for="Monthly_Revenue">
-          <span class="q-num">1</span>
+          <span class="q-num">✱</span>
           Pendapatan Bulanan
+          <span class="label-badge-helper">Bantu Hitung Otomatis</span>
         </label>
         <div class="input-prefix-wrap" id="wrap-Monthly_Revenue">
           <span class="input-prefix">Rp</span>
           <input type="number" id="Monthly_Revenue" name="Monthly_Revenue"
                  placeholder="cth: 6.500.000" min="1" step="1000" required />
         </div>
-        <span class="field-hint">Total uang masuk dari semua penjualan bulan ini</span>
+        <span class="field-hint">Total uang masuk dari semua penjualan bulan ini. Hanya untuk membantu menghitung Margin &amp; Rasio — bukan fitur model (tereliminasi oleh seleksi fitur SBS).</span>
         <span class="field-error" id="err-Monthly_Revenue"></span>
       </div>
 
@@ -82,7 +83,7 @@
       <!-- Net Profit Margin -->
       <div class="form-group">
         <label for="Net_Profit_Margin">
-          <span class="q-num">2</span>
+          <span class="q-num">1</span>
           Margin Keuntungan Bersih <em>(Net Profit Margin)</em>
         </label>
         <div class="input-suffix-wrap" id="wrap-Net_Profit_Margin">
@@ -99,14 +100,14 @@
       <!-- Burn Rate Ratio -->
       <div class="form-group">
         <label for="Burn_Rate_Ratio">
-          <span class="q-num">3</span>
+          <span class="q-num">2</span>
           Rasio Pengeluaran <em>(Burn Rate Ratio)</em>
         </label>
         <input type="number" id="Burn_Rate_Ratio" name="Burn_Rate_Ratio"
                placeholder="dihitung otomatis / isi manual" min="0.44" max="1.55" step="0.001" required />
         <span class="field-hint">
           <strong>Rumus:</strong> Pengeluaran ÷ Pendapatan &nbsp;|&nbsp;
-          &lt; 1 = untung &nbsp;·&nbsp; &gt; 1 = merugi &nbsp;|&nbsp; Rentang: 0.44 s.d. 1.55
+          &lt; 1 = untung &nbsp;·&nbsp; &gt; 1 = merugi &nbsp;|&nbsp; Rentang: 0.43 s.d. 1.55
         </span>
         <span class="field-error" id="err-Burn_Rate_Ratio"></span>
       </div>
@@ -114,22 +115,22 @@
       <!-- Divider -->
       <div class="form-section-title" style="margin-top:1.25rem">📦 Aktivitas Usaha</div>
 
-      <!-- Transaksi -->
+      <!-- Rating Historis -->
       <div class="form-group">
-        <label for="Transaction_Count">
-          <span class="q-num">4</span>
-          Jumlah Transaksi per Bulan
+        <label for="Avg_Historical_Rating">
+          <span class="q-num">3</span>
+          Rating Historis Rata-rata <em>(Avg Historical Rating)</em>
         </label>
-        <input type="number" id="Transaction_Count" name="Transaction_Count"
-               placeholder="cth: 120" min="9" max="285" step="1" required />
-        <span class="field-hint">Total pesanan atau struk penjualan bulan ini. Rentang: 9–285</span>
-        <span class="field-error" id="err-Transaction_Count"></span>
+        <input type="number" id="Avg_Historical_Rating" name="Avg_Historical_Rating"
+               placeholder="cth: 4.2" min="1" max="5" step="0.01" required />
+        <span class="field-hint">Rata-rata rating/ulasan pelanggan usaha Anda (skala 1–5). Pada dataset: 1,5 s.d. 5,0</span>
+        <span class="field-error" id="err-Avg_Historical_Rating"></span>
       </div>
 
       <!-- Repeat Order -->
       <div class="form-group">
         <label for="Repeat_Order_Rate">
-          <span class="q-num">5</span>
+          <span class="q-num">4</span>
           Tingkat Pelanggan Kembali <em>(Repeat Order Rate)</em>
         </label>
         <div class="input-suffix-wrap" id="wrap-Repeat_Order_Rate">
@@ -144,7 +145,7 @@
       <!-- Lama Usaha -->
       <div class="form-group">
         <label for="Business_Tenure_Months">
-          <span class="q-num">6</span>
+          <span class="q-num">5</span>
           Lama Usaha Berjalan
         </label>
         <div class="input-suffix-wrap" id="wrap-Business_Tenure_Months">
@@ -192,20 +193,11 @@
       </div>
 
       <div class="gauge-section">
-        <h3 class="section-sub-title">📊 Tingkat Keyakinan Prediksi</h3>
+        <h3 class="section-sub-title">📊 Probabilitas per Kelas (4 Kelas)</h3>
         <div class="gauge-container">
           <canvas id="gauge-chart" width="300" height="175"></canvas>
         </div>
-        <div class="gauge-legend">
-          <div class="gl-item">
-            <span class="gl-dot" style="background:var(--clr-sehat)"></span>
-            <span>Sehat:</span><strong id="gauge-sehat">—</strong>
-          </div>
-          <div class="gl-item">
-            <span class="gl-dot" style="background:var(--clr-tidak)"></span>
-            <span>Tidak Sehat:</span><strong id="gauge-tidak">—</strong>
-          </div>
-        </div>
+        <div class="gauge-legend" id="gauge-legend"></div>
       </div>
 
       <div class="input-summary">

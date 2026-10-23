@@ -30,13 +30,17 @@ async function loadHistory() {
   }
 }
 
+const WARNA_KELAS_R = { Critical: "#dc2626", Elite: "#7c3aed", Growth: "#16a34a", Struggling: "#d97706" };
+const IKON_KELAS_R = { Critical: "🚨", Elite: "👑", Growth: "📈", Struggling: "⚠️" };
+
 function updateStats(data) {
   const total = data.length;
-  const sehat = data.filter(d => d.output?.label === 1).length;
-  const tidak = total - sehat;
+  const count = k => data.filter(d => d.output?.label_teks === k).length;
   setText("total-predictions", total.toLocaleString("id-ID"));
-  setText("total-sehat",       sehat.toLocaleString("id-ID"));
-  setText("total-tidak",       tidak.toLocaleString("id-ID"));
+  setText("total-critical",   count("Critical").toLocaleString("id-ID"));
+  setText("total-struggling", count("Struggling").toLocaleString("id-ID"));
+  setText("total-growth",     count("Growth").toLocaleString("id-ID"));
+  setText("total-elite",      count("Elite").toLocaleString("id-ID"));
 }
 
 /* ── Render Tabel ─────────────────────────────────────────────────────────── */
@@ -63,41 +67,32 @@ function renderTable(data) {
   const slice = data.slice(start, start + PER_PAGE);
 
   tbody.innerHTML = slice.map((item, idx) => {
-    const i   = item.input  || {};
-    const o   = item.output || {};
-    const isS = o.label === 1;
+    const i = item.input  || {};
+    const o = item.output || {};
+    const kelas = o.label_teks || "—";
+    const warna = WARNA_KELAS_R[kelas] || "#64748b";
+    const badge = `<span class="badge-kelas-sm" style="background:#f1f5f9;color:${warna};border:1px solid ${warna}">${IKON_KELAS_R[kelas] || ""} ${kelas}</span>`;
 
-    // Hitung pendapatan & pengeluaran kembali dari fitur model
-    const rev  = i.Monthly_Revenue;
-    const npm  = i.Net_Profit_Margin;
-    const burn = i.Burn_Rate_Ratio;
-    // pengeluaran = pendapatan * burn_rate
-    const exp  = rev && burn ? Math.round(rev * burn) : null;
-
-    const badge = isS
-      ? `<span class="badge-sehat-sm">✅ Sehat</span>`
-      : `<span class="badge-tidak-sm">⚠️ Tidak Sehat</span>`;
-
-    const prob     = o.prob_sehat != null ? o.prob_sehat : 0;
-    const probPct  = (prob * 100).toFixed(1) + "%";
+    const prob = o.prob_max != null ? o.prob_max : 0;
+    const probPct = (prob * 100).toFixed(1) + "%";
     const barWidth = Math.round(prob * 100);
 
     return `<tr>
       <td style="color:var(--clr-muted);font-size:.8rem">${start + idx + 1}</td>
       <td style="white-space:nowrap">${formatTs(item.timestamp)}</td>
-      <td>${rev ? "Rp " + Math.round(rev).toLocaleString("id-ID") : "—"}</td>
-      <td>${exp ? "Rp " + exp.toLocaleString("id-ID") : "—"}</td>
-      <td style="color:${npm >= 0 ? "var(--clr-sehat)" : "var(--clr-tidak)"};font-weight:700">
-        ${npm != null ? fmtDec(npm) + "%" : "—"}
+      <td style="color:${i.Net_Profit_Margin >= 0 ? "var(--clr-sehat)" : "var(--clr-tidak)"};font-weight:700">
+        ${i.Net_Profit_Margin != null ? fmtDec(i.Net_Profit_Margin) + "%" : "—"}
       </td>
-      <td>${i.Transaction_Count ?? "—"}</td>
+      <td>${i.Burn_Rate_Ratio != null ? fmtDec(i.Burn_Rate_Ratio, 3) : "—"}</td>
+      <td>${i.Avg_Historical_Rating != null ? fmtDec(i.Avg_Historical_Rating) + " / 5" : "—"}</td>
       <td>${i.Repeat_Order_Rate != null ? fmtDec(i.Repeat_Order_Rate) + "%" : "—"}</td>
+      <td>${i.Business_Tenure_Months ?? "—"} bln</td>
       <td>${badge}</td>
       <td>
         <div class="prob-bar">
           <span style="font-weight:700;min-width:38px">${probPct}</span>
           <div style="flex:1;background:var(--clr-border);border-radius:9999px;height:6px;overflow:hidden">
-            <div style="width:${barWidth}%;height:100%;background:${prob >= 0.5 ? "var(--clr-sehat)" : "var(--clr-tidak)"};border-radius:9999px"></div>
+            <div style="width:${barWidth}%;height:100%;background:${warna};border-radius:9999px"></div>
           </div>
         </div>
       </td>
@@ -141,8 +136,7 @@ function getFiltered() {
   const status = document.getElementById("filter-status").value;
   const search = document.getElementById("search-history").value.toLowerCase();
   return allHistory.filter(item => {
-    if (status === "sehat"       && item.output?.label !== 1) return false;
-    if (status === "tidak-sehat" && item.output?.label !== 0) return false;
+    if (status !== "all" && item.output?.label_teks !== status) return false;
     if (search) {
       const ts = (item.timestamp || "").toLowerCase();
       const id = (item.id        || "").toLowerCase();
@@ -163,28 +157,166 @@ function exportPDF() {
   
   const rows = data.map((item, idx) => {
     const i = item.input || {}; const o = item.output || {};
-    const exp = i.Monthly_Revenue && i.Burn_Rate_Ratio ? Math.round(i.Monthly_Revenue * i.Burn_Rate_Ratio) : "-";
-    const prob = o.prob_sehat ? (o.prob_sehat * 100).toFixed(1) + "%" : "-";
-    const isS = o.label === 1;
+    const prob = o.prob_max != null ? (o.prob_max * 100).toFixed(1) + "%" : "-";
+    const warna = WARNA_KELAS_R[o.label_teks] || "#1e293b";
     return `
       <tr>
         <td>${idx + 1}</td>
         <td>${formatTs(item.timestamp)}</td>
-        <td>Rp ${(i.Monthly_Revenue || 0).toLocaleString("id-ID")}</td>
-        <td>Rp ${typeof exp === "number" ? exp.toLocaleString("id-ID") : exp}</td>
         <td>${i.Net_Profit_Margin != null ? i.Net_Profit_Margin + "%" : "-"}</td>
-        <td>${i.Burn_Rate_Ratio || "-"}</td>
-        <td>${i.Transaction_Count || "-"}</td>
+        <td>${i.Burn_Rate_Ratio ?? "-"}</td>
+        <td>${i.Avg_Historical_Rating ?? "-"}</td>
         <td>${i.Repeat_Order_Rate != null ? i.Repeat_Order_Rate + "%" : "-"}</td>
-        <td style="color:${isS ? "#10b981" : "#ef4444"};font-weight:bold">${o.label_teks || "-"}</td>
+        <td>${i.Business_Tenure_Months ?? "-"}</td>
+        <td style="color:${warna};font-weight:bold">${o.label_teks || "-"}</td>
         <td>${prob}</td>
       </tr>
     `;
   }).join("");
 
   const total = data.length;
-  const sehat = data.filter(d => (d.output || {}).label === 1).length;
-  const tidak = total - sehat;
+  const count = k => data.filter(d => d.output?.label_teks === k).length;
+  setText("total-predictions", total.toLocaleString("id-ID"));
+  setText("total-critical",   count("Critical").toLocaleString("id-ID"));
+  setText("total-struggling", count("Struggling").toLocaleString("id-ID"));
+  setText("total-growth",     count("Growth").toLocaleString("id-ID"));
+  setText("total-elite",      count("Elite").toLocaleString("id-ID"));
+}
+
+/* ── Render Tabel ─────────────────────────────────────────────────────────── */
+
+function renderTable(data) {
+  const empty  = document.getElementById("history-empty");
+  const scroll = document.getElementById("table-scroll");
+  const tbody  = document.getElementById("history-tbody");
+  const pagDiv = document.getElementById("pagination");
+
+  if (data.length === 0) {
+    scroll.classList.add("hidden");
+    empty.classList.remove("hidden");
+    pagDiv.innerHTML = "";
+    return;
+  }
+
+  empty.classList.add("hidden");
+  scroll.classList.remove("hidden");
+
+  const totalPages = Math.ceil(data.length / PER_PAGE);
+  currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const start = (currentPage - 1) * PER_PAGE;
+  const slice = data.slice(start, start + PER_PAGE);
+
+  tbody.innerHTML = slice.map((item, idx) => {
+    const i = item.input  || {};
+    const o = item.output || {};
+    const kelas = o.label_teks || "—";
+    const warna = WARNA_KELAS_R[kelas] || "#64748b";
+    const badge = `<span class="badge-kelas-sm" style="background:#f1f5f9;color:${warna};border:1px solid ${warna}">${IKON_KELAS_R[kelas] || ""} ${kelas}</span>`;
+
+    const prob = o.prob_max != null ? o.prob_max : 0;
+    const probPct = (prob * 100).toFixed(1) + "%";
+    const barWidth = Math.round(prob * 100);
+
+    return `<tr>
+      <td style="color:var(--clr-muted);font-size:.8rem">${start + idx + 1}</td>
+      <td style="white-space:nowrap">${formatTs(item.timestamp)}</td>
+      <td style="color:${i.Net_Profit_Margin >= 0 ? "var(--clr-sehat)" : "var(--clr-tidak)"};font-weight:700">
+        ${i.Net_Profit_Margin != null ? fmtDec(i.Net_Profit_Margin) + "%" : "—"}
+      </td>
+      <td>${i.Burn_Rate_Ratio != null ? fmtDec(i.Burn_Rate_Ratio, 3) : "—"}</td>
+      <td>${i.Avg_Historical_Rating != null ? fmtDec(i.Avg_Historical_Rating) + " / 5" : "—"}</td>
+      <td>${i.Repeat_Order_Rate != null ? fmtDec(i.Repeat_Order_Rate) + "%" : "—"}</td>
+      <td>${i.Business_Tenure_Months ?? "—"} bln</td>
+      <td>${badge}</td>
+      <td>
+        <div class="prob-bar">
+          <span style="font-weight:700;min-width:38px">${probPct}</span>
+          <div style="flex:1;background:var(--clr-border);border-radius:9999px;height:6px;overflow:hidden">
+            <div style="width:${barWidth}%;height:100%;background:${warna};border-radius:9999px"></div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+
+  renderPagination(data.length, totalPages);
+}
+
+/* ── Pagination ─────────────────────────────────────────────────────────────*/
+
+function renderPagination(total, totalPages) {
+  const pagDiv = document.getElementById("pagination");
+  if (totalPages <= 1) { pagDiv.innerHTML = ""; return; }
+
+  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?"disabled":""}>‹ Prev</button>`;
+  for (let p = 1; p <= totalPages; p++) {
+    if (p===1||p===totalPages||Math.abs(p-currentPage)<=2)
+      html += `<button class="page-btn ${p===currentPage?"active-page":""}" onclick="goPage(${p})">${p}</button>`;
+    else if (Math.abs(p-currentPage)===3)
+      html += `<span style="padding:.4rem .3rem;color:var(--clr-muted)">…</span>`;
+  }
+  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?"disabled":""}>Next ›</button>`;
+  pagDiv.innerHTML = html;
+}
+
+function goPage(p) {
+  currentPage = p;
+  renderTable(getFiltered());
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ── Filter ──────────────────────────────────────────────────────────────── */
+
+function filterHistory() {
+  currentPage = 1;
+  renderTable(getFiltered());
+}
+
+function getFiltered() {
+  const status = document.getElementById("filter-status").value;
+  const search = document.getElementById("search-history").value.toLowerCase();
+  return allHistory.filter(item => {
+    if (status !== "all" && item.output?.label_teks !== status) return false;
+    if (search) {
+      const ts = (item.timestamp || "").toLowerCase();
+      const id = (item.id        || "").toLowerCase();
+      if (!ts.includes(search) && !id.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+/* ── Export PDF ──────────────────────────────────────────────────────────── */
+
+function exportPDF() {
+  const data = getFiltered();
+  if (!data.length) { alert("Tidak ada data untuk diekspor."); return; }
+
+  // Buka window baru untuk print
+  const printWindow = window.open('', '_blank');
+  
+  const rows = data.map((item, idx) => {
+    const i = item.input || {}; const o = item.output || {};
+    const prob = o.prob_max != null ? (o.prob_max * 100).toFixed(1) + "%" : "-";
+    const warna = WARNA_KELAS_R[o.label_teks] || "#1e293b";
+    return `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${formatTs(item.timestamp)}</td>
+        <td>${i.Net_Profit_Margin != null ? i.Net_Profit_Margin + "%" : "-"}</td>
+        <td>${i.Burn_Rate_Ratio ?? "-"}</td>
+        <td>${i.Avg_Historical_Rating ?? "-"}</td>
+        <td>${i.Repeat_Order_Rate != null ? i.Repeat_Order_Rate + "%" : "-"}</td>
+        <td>${i.Business_Tenure_Months ?? "-"}</td>
+        <td style="color:${warna};font-weight:bold">${o.label_teks || "-"}</td>
+        <td>${prob}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const total = data.length;
+  const positif = data.filter(d => ["Growth", "Elite"].includes((d.output || {}).label_teks)).length;
+  const negatif = total - positif;
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -218,22 +350,21 @@ function exportPDF() {
       </div>
       <div class="stats">
         <div class="stat"><div class="stat-label">Total Analisis</div><div class="stat-value">${total}</div></div>
-        <div class="stat"><div class="stat-label">Sehat</div><div class="stat-value sehat">${sehat}</div></div>
-        <div class="stat"><div class="stat-label">Tidak Sehat</div><div class="stat-value tidak">${tidak}</div></div>
+        <div class="stat"><div class="stat-label">Positif (Growth/Elite)</div><div class="stat-value sehat">${positif}</div></div>
+        <div class="stat"><div class="stat-label">Negatif (Critical/Struggling)</div><div class="stat-value tidak">${negatif}</div></div>
       </div>
       <table>
         <thead>
           <tr>
             <th>#</th>
             <th>Waktu</th>
-            <th>Pendapatan</th>
-            <th>Pengeluaran</th>
             <th>Margin</th>
             <th>Burn Rate</th>
-            <th>Transaksi</th>
+            <th>Rating</th>
             <th>Repeat Order</th>
-            <th>Hasil</th>
-            <th>P(Sehat)</th>
+            <th>Tenure (bln)</th>
+            <th>Kelas</th>
+            <th>Prob Kelas</th>
           </tr>
         </thead>
         <tbody>

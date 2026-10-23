@@ -63,9 +63,13 @@ function computeTrend(data) {
     const total = items.length;
     let sehat = 0, totalProb = 0;
     items.forEach(it => {
-      const prob = it.output?.prob_sehat ?? it.prob_sehat ?? 0;
+      const probs = it.output?.probabilitas || {};
+      const prob = probs.Growth != null || probs.Elite != null
+        ? (probs.Growth ?? 0) + (probs.Elite ?? 0)
+        : (it.output?.prob_sehat ?? it.prob_sehat ?? 0);
       totalProb += prob;
-      if ((it.output?.label ?? it.label) === 1) sehat++;
+      const teks = it.output?.label_teks ?? it.label_teks;
+      if (teks === "Growth" || teks === "Elite") sehat++;
     });
     labels.push(m);
     probAverages.push(totalProb / total);
@@ -84,12 +88,12 @@ function computeTrend(data) {
   let verdictDesc = "";
 
   if (sehatPct >= 0.7) {
-    verdict = "✅ USAHA SEHAT — Stabil Positif";
+    verdict = "✅ USAHA POSITIF — Dominan Growth/Elite";
     verdictClass = "sehat";
     verdictDesc = "Selama setahun terakhir, mayoritas analisis menunjukkan kondisi keuangan yang sehat. "
       + "Pertahankan strategi bisnis Anda dan terus pantau indikator keuangan secara berkala.";
   } else if (sehatPct <= 0.3) {
-    verdict = "⚠️ USAHA TIDAK SEHAT — Perlu Perhatian";
+    verdict = "⚠️ USAHA NEGATIF — Dominan Critical/Struggling";
     verdictClass = "tidak";
     verdictDesc = "Sebagian besar analisis dalam setahun terakhir menunjukkan kondisi keuangan yang kurang sehat. "
       + "Segera evaluasi strategi bisnis, terutama pada efisiensi pengeluaran dan peningkatan margin keuntungan.";
@@ -118,7 +122,7 @@ function computeTrend(data) {
         <div class="value">${totalAll}</div>
       </div>
       <div class="tren-stat">
-        <div class="label">Rata-rata Probabilitas Sehat</div>
+        <div class="label">Rata-rata Probabilitas Positif</div>
         <div class="value ${avgProb >= 0.7 ? 'sehat' : avgProb <= 0.3 ? 'tidak' : 'fluk'}">${(avgProb * 100).toFixed(1)}%</div>
       </div>
       <div class="tren-stat">
@@ -127,7 +131,7 @@ function computeTrend(data) {
         <div class="desc">Bulan ${labels[labels.length - 1]}</div>
       </div>
       <div class="tren-stat">
-        <div class="label">Tren Probabilitas</div>
+        <div class="label">Tren Probabilitas Positif</div>
         <div class="value ${trend === 'naik' ? 'sehat' : trend === 'turun' ? 'tidak' : 'fluk'}">
           ${trend === 'naik' ? '📈 Naik' : trend === 'turun' ? '📉 Turun' : '➡️ Stabil'}
         </div>
@@ -146,7 +150,7 @@ function computeTrend(data) {
     const tidak = tidakCounts[i];
     const avg = probAverages[i];
     const status = avg >= 0.5 ? "sehat" : "tidak";
-    const badge = status === "sehat" ? "✅ Sehat" : "⚠️ Tidak Sehat";
+    const badge = status === "sehat" ? "✅ Cenderung Positif" : "⚠️ Cenderung Negatif";
     const badgeClass = status === "sehat" ? "tren-badge-sehat" : "tren-badge-tidak";
     return `<tr>
       <td><strong>${m}</strong></td>
@@ -175,7 +179,7 @@ function renderTrenChart(labels, probAvg, sehat, tidak) {
       labels: labels,
       datasets: [
         {
-          label: "Probabilitas Sehat (%)",
+          label: "Probabilitas Positif (%)",
           data: probAvg.map(v => v * 100),
           borderColor: "#10b981",
           backgroundColor: "rgba(16,185,129,0.1)",
@@ -190,7 +194,7 @@ function renderTrenChart(labels, probAvg, sehat, tidak) {
           yAxisID: "y",
         },
         {
-          label: "✅ Sehat",
+          label: "✅ Positif",
           data: sehat,
           backgroundColor: "rgba(16,185,129,0.2)",
           borderColor: "rgba(16,185,129,0.7)",
@@ -201,7 +205,7 @@ function renderTrenChart(labels, probAvg, sehat, tidak) {
           yAxisID: "y1",
         },
         {
-          label: "⚠️ Tidak Sehat",
+          label: "⚠️ Negatif",
           data: tidak,
           backgroundColor: "rgba(239,68,68,0.2)",
           borderColor: "rgba(239,68,68,0.7)",
@@ -232,7 +236,7 @@ function renderTrenChart(labels, probAvg, sehat, tidak) {
         tooltip: {
           callbacks: {
             label: function(ctx) {
-              if (ctx.dataset.label === "Probabilitas Sehat (%)") {
+              if (ctx.dataset.label === "Probabilitas Positif (%)") {
                 return ` ${ctx.parsed.y.toFixed(1)}%`;
               }
               return ` ${ctx.dataset.label}: ${ctx.parsed.y}`;
@@ -246,7 +250,7 @@ function renderTrenChart(labels, probAvg, sehat, tidak) {
           max: 100,
           title: {
             display: true,
-            text: "Probabilitas Sehat (%)",
+            text: "Probabilitas Positif (%)",
             font: { size: 11 }
           },
           grid: { color: "rgba(0,0,0,0.05)" }
