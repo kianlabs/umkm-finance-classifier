@@ -7,7 +7,7 @@ mengklasifikasikan kondisi keuangan UMKM ke dalam **4 kelas**:
 
 > Dokumentasi showcase lengkap ada di README root repo. File ini ringkasan teknis folder aplikasi.
 >
-> 🎓 **Project Skripsi** — aplikasi ini adalah program dari skripsi *"Penerapan Metode Naïve Bayes untuk Klasifikasi Kondisi Keuangan UMKM Berdasarkan Laporan Keuangan"* oleh Ridzkyan Buti Pratama, Teknik Informatika, Universitas Duta Bangsa Surakarta (2026).
+> 🎓 **Project Skripsi** — aplikasi ini adalah pembuatan ulang (rekonstruksi) dari program skripsi *"Penerapan Metode Naïve Bayes untuk Klasifikasi Kondisi Keuangan UMKM Berdasarkan Laporan Keuangan"* oleh Ridzkyan Buti Pratama, Teknik Informatika, Universitas Duta Bangsa Surakarta (2026). Program penelitian aslinya telah hilang; rekonstruksi ini dibuat berdasarkan naskah skripsi yang tersisa.
 
 ## Persyaratan
 

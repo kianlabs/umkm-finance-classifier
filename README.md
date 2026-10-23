@@ -14,9 +14,10 @@ dengan 5 fitur hasil seleksi *Sequential Backward Selection* (SBS).
 
 ## 🎓 Project Skripsi
 
-Repository ini adalah **program dari skripsi (tugas akhir) penulis** — bukan project
-sampingan. Seluruh isi repo ini (kode aplikasi, model, dataset, dan hasil evaluasi)
-adalah implementasi dari penelitian skripsi berikut:
+Repository ini berisi **program dari skripsi (tugas akhir) penulis**. Program
+penelitian aslinya telah hilang dan yang tersisa hanya naskahnya, sehingga aplikasi
+di repo ini adalah **hasil pembuatan ulang (rekonstruksi)** berdasarkan naskah
+skripsi berikut:
 
 | | |
 |---|---|
@@ -26,9 +27,8 @@ adalah implementasi dari penelitian skripsi berikut:
 | **Universitas** | Universitas Duta Bangsa Surakarta |
 | **Tahun** | 2026 |
 
-Aplikasi web di repo ini adalah prototipe yang dibangun dan dievaluasi di dalam
-naskah skripsi tersebut, sehingga fitur dan hasil modelnya mengikuti persis
-yang tertulis di laporan.
+Hasil evaluasi dari rekonstruksi ini sudah diverifikasi dan sama persis dengan
+yang dilaporkan di naskah: akurasi 88,88%, Macro F1-Score 85,21%, Macro ROC-AUC 0,9791.
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
