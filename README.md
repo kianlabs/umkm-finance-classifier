@@ -16,8 +16,6 @@ Proyek ini adalah implementasi dari skripsi:
 > **Penerapan Metode Naïve Bayes untuk Klasifikasi Kondisi Keuangan UMKM Berdasarkan Laporan Keuangan**
 > Ridzkyan Buti Pratama — Universitas Duta Bangsa Surakarta, 2026
 
-![Dashboard](docs/screenshots/dashboard.png)
-
 ## Hasil Model (terverifikasi dari retrain)
 
 Evaluasi pada test set 30.000 baris (split stratified 80/20, `random_state=42`):
@@ -69,16 +67,6 @@ Temuan menariknya: besar omzet (*Monthly Revenue*) dan jumlah transaksi ternyata
 **tidak** menentukan kondisi keuangan UMKM — efisiensi (margin & burn rate),
 kepuasan pelanggan (rating), loyalitas (repeat order), dan pengalaman usaha (tenure) yang menentukan.
 
-## Screenshot
-
-| Dashboard | Klasifikasi |
-|---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Klasifikasi](docs/screenshots/klasifikasi.png) |
-
-| Visualisasi |
-|---|
-| ![Visualisasi](docs/screenshots/visualisasi.png) |
-
 ## Cara Menjalankan
 
 ```bash
@@ -112,7 +100,6 @@ pytest tests/ -v     # 50 tests: unit + property-based (Hypothesis)
 .
 ├── README.md                  # ← Anda di sini
 ├── LICENSE
-├── docs/screenshots/          # Screenshot aplikasi
 └── umkm-financial-classifier/ # Aplikasi Flask
     ├── app.py                 # Entry point + REST API
     ├── train.py               # Training pipeline
